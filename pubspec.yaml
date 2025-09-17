@@ -1,0 +1,54 @@
+name: zaker
+description: "تطبيق دراسي لتلخيص ملفات PDF وإنشاء بطاقات تعليمية واختبارات."
+publish_to: 'none' 
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.3 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations: # تمت الإضافة لدعم اللغة العربية
+    sdk: flutter
+
+  flutter_markdown: ^0.7.1
+  # Icons
+  cupertino_icons: ^1.0.2
+
+  # Backend & Storage
+  supabase_flutter: ^2.5.0
+
+  # AI Model
+  google_generative_ai: ^0.4.1
+
+  # State Management
+  provider: ^6.1.1
+  shared_preferences: ^2.2.3 # لحفظ الجلسات محلياً
+
+  # File Handling
+  file_picker: ^8.0.0+1
+  syncfusion_flutter_pdf: ^28.1.33
+
+  # UI/UX
+  flutter_card_swiper: ^7.0.0 # For flashcards
+  dotted_border: ^2.1.0
+  lottie: ^2.0.0
+  percent_indicator: ^4.2.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - logo.png
+    # - assets/animations/
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "logo.png"
