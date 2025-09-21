@@ -26,27 +26,29 @@ class _FlashcardWidgetState extends State<FlashcardWidget> {
           child: CardSwiper(
             controller: _controller,
             cardsCount: widget.flashcards.length,
-            cardBuilder: (context, index, horizontalThresholdPercentage, verticalThresholdPercentage) {
-              // إضافة مفتاح فريد لإصلاح مشكلة إعادة الاستخدام
-              return _FlashcardContent(
-                key: ValueKey(widget.flashcards[index].question),
-                flashcard: widget.flashcards[index]
-              );
-            },
-            onSwipe: (prev, curr, dir) => true,
-            padding: const EdgeInsets.all(24.0),
+            cardBuilder: (context, index, h, v) => _FlashcardContent(
+              key: ValueKey(widget.flashcards[index].question),
+              flashcard: widget.flashcards[index]
+            ),
+            allowedSwipeDirection: const AllowedSwipeDirection.symmetric(horizontal: true),
           ),
         ),
         const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.indigo, size: 30),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.arrow_back_rounded),
+              label: const Text('السابق'),
               onPressed: () => _controller.swipe(CardSwiperDirection.left),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey.shade200,
+                foregroundColor: Colors.black,
+              ),
             ),
-            IconButton(
-              icon: const Icon(Icons.arrow_forward, color: Colors.indigo, size: 30),
+             ElevatedButton.icon(
+              icon: const Icon(Icons.arrow_forward_rounded),
+              label: const Text('التالي'),
               onPressed: () => _controller.swipe(CardSwiperDirection.right),
             ),
           ],
@@ -64,36 +66,31 @@ class _FlashcardContent extends StatefulWidget {
   State<_FlashcardContent> createState() => _FlashcardContentState();
 }
 
-class _FlashcardContentState extends State<_FlashcardContent>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-  bool _isFront = true;
+// --- تعديل: تم إعادة كتابة آلية القلب بالكامل لتكون أكثر استقراراً ---
+class _FlashcardContentState extends State<_FlashcardContent> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    _animation = Tween<double>(begin: 0, end: 1).animate(_controller);
   }
 
   void _flipCard() {
-    if (!mounted) return;
-    if (_controller.isCompleted) {
-      _controller.reverse();
-      setState(() => _isFront = true);
+    if (!mounted || _animationController.isAnimating) return;
+    if (_animationController.status == AnimationStatus.completed) {
+      _animationController.reverse();
     } else {
-      _controller.forward();
-      setState(() => _isFront = false);
+      _animationController.forward();
     }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -102,67 +99,64 @@ class _FlashcardContentState extends State<_FlashcardContent>
     return GestureDetector(
       onTap: _flipCard,
       child: AnimatedBuilder(
-        animation: _animation,
+        animation: _animationController,
         builder: (context, child) {
-          final angle = _animation.value * pi;
+          final angle = _animationController.value * pi;
+          final isShowingBack = _animationController.value >= 0.5;
+
           final transform = Matrix4.identity()
             ..setEntry(3, 2, 0.001)
             ..rotateY(angle);
+
           return Transform(
             transform: transform,
             alignment: Alignment.center,
-            child: _animation.value > 0.5
-                ? _buildCardSide(widget.flashcard.answer, false)
-                : _buildCardSide(widget.flashcard.question, true),
+            child: isShowingBack
+                ? Transform(
+                    transform: Matrix4.identity()..rotateY(pi),
+                    alignment: Alignment.center,
+                    child: _buildCardSide(
+                      label: "الإجابة",
+                      text: widget.flashcard.answer,
+                    ),
+                  )
+                : _buildCardSide(
+                    label: "السؤال",
+                    text: widget.flashcard.question,
+                  ),
           );
         },
       ),
     );
   }
 
-  Widget _buildCardSide(String text, bool isQuestion) {
-    return Transform(
-      transform: Matrix4.identity()..rotateY(isQuestion ? 0 : pi),
-      alignment: Alignment.center,
-      child: Card(
-        elevation: 8,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              colors: isQuestion
-                  ? [Colors.indigo.shade400, Colors.indigo.shade600]
-                  : [Colors.teal.shade400, Colors.teal.shade600],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+  Widget _buildCardSide({required String label, required String text}) {
+    return Card(
+      elevation: 8,
+      shadowColor: Colors.black.withOpacity(0.1),
+      child: Container(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          children: [
+            Text(
+              label, 
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).primaryColor
+              )
             ),
-          ),
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                   Text(
-                    isQuestion ? 'السؤال' : 'الإجابة',
-                    style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    text,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
+            const Spacer(),
+            Center(
+              child: SingleChildScrollView(
+                child: Text(text, textAlign: TextAlign.center, style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 22)),
               ),
             ),
-          ),
+            const Spacer(),
+            Text(
+              "انقر للقلب",
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
+            )
+          ],
         ),
       ),
     );

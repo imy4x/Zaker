@@ -2,25 +2,27 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zaker/models/study_session.dart';
 
-// خدمة جديدة لإدارة التخزين المحلي
 class StorageService {
-  Future<void> saveSession(int slotIndex, StudySession session) async {
+  static const _sessionsKey = 'study_sessions_list_v2';
+
+  Future<void> saveSessions(List<StudySession> sessions) async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonString = jsonEncode(session.toJson());
-    await prefs.setString('session_$slotIndex', jsonString);
+    final List<String> sessionsJson = sessions.map((s) => jsonEncode(s.toJson())).toList();
+    await prefs.setStringList(_sessionsKey, sessionsJson);
   }
 
-  Future<StudySession?> getSession(int slotIndex) async {
+  Future<List<StudySession>> getSessions() async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString('session_$slotIndex');
-    if (jsonString != null) {
-      return StudySession.fromJson(jsonDecode(jsonString));
+    final sessionsJson = prefs.getStringList(_sessionsKey);
+    if (sessionsJson != null) {
+      try {
+        return sessionsJson.map((s) => StudySession.fromJson(jsonDecode(s))).toList();
+      } catch (e) {
+        print("Error decoding sessions: $e. Clearing old data.");
+        await prefs.remove(_sessionsKey); // Clear corrupted data
+        return [];
+      }
     }
-    return null;
-  }
-
-  Future<void> deleteSession(int slotIndex) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('session_$slotIndex');
+    return []; // إرجاع قائمة فارغة إذا لم توجد جلسات مخزنة
   }
 }

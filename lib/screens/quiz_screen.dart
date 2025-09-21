@@ -16,6 +16,7 @@ class _QuizScreenState extends State<QuizScreen> {
   int _score = 0;
   int? _selectedAnswerIndex;
   bool _answered = false;
+  final List<QuizQuestion> _correctlyAnsweredQuestions = [];
 
   void _nextQuestion() {
     if (_currentQuestionIndex < widget.questions.length - 1) {
@@ -32,85 +33,33 @@ class _QuizScreenState extends State<QuizScreen> {
   void _handleAnswer(int index) {
     if (_answered) return;
 
+    final currentQuestion = widget.questions[_currentQuestionIndex];
     setState(() {
       _selectedAnswerIndex = index;
       _answered = true;
-      if (index == widget.questions[_currentQuestionIndex].correctAnswerIndex) {
+      if (index == currentQuestion.correctAnswerIndex) {
         _score++;
+        _correctlyAnsweredQuestions.add(currentQuestion);
       }
     });
 
-    Future.delayed(const Duration(seconds: 1), () {
-      if(mounted) {
-        _nextQuestion();
-      }
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if(mounted) _nextQuestion();
     });
   }
 
   void _showResultDialog() {
-    final double percentage = widget.questions.isNotEmpty ? _score / widget.questions.length : 0.0;
-    String understandingLevel;
-    Color progressColor;
-
-    if (percentage >= 0.9) {
-      understandingLevel = 'فهم ممتاز! أنت مستعد تماماً.';
-      progressColor = Colors.green;
-    } else if (percentage >= 0.7) {
-      understandingLevel = 'جيد جداً، استمر في المراجعة.';
-      progressColor = Colors.lightGreen;
-    } else if (percentage >= 0.5) {
-      understandingLevel = 'تحتاج إلى مراجعة بسيطة لبعض النقاط.';
-      progressColor = Colors.orange;
-    } else {
-      understandingLevel = 'ننصحك بإعادة مراجعة المادة.';
-      progressColor = Colors.red;
-    }
-
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text('انتهى الاختبار!'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('نتيجتك هي:', style: Theme.of(context).textTheme.bodyLarge),
-              const SizedBox(height: 10),
-              Text(
-                '$_score / ${widget.questions.length}',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 32, color: Colors.indigo),
-              ),
-              const SizedBox(height: 20),
-              Text('مستوى فهمك في هذا الاختبار:', style: Theme.of(context).textTheme.bodyMedium),
-              const SizedBox(height: 10),
-              LinearPercentIndicator(
-                percent: percentage,
-                lineHeight: 15.0,
-                barRadius: const Radius.circular(7.5),
-                backgroundColor: Colors.grey.shade300,
-                progressColor: progressColor,
-                center: Text(
-                  '${(percentage * 100).toStringAsFixed(0)}%',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-                animation: true,
-              ),
-              const SizedBox(height: 15),
-              Text(
-                understandingLevel,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: progressColor, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-        ),
+        content: Text('نتيجتك هي: $_score / ${widget.questions.length}'),
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(_score); // Go back from quiz screen and return score
+              Navigator.of(context).pop(); // إغلاق النافذة
+              Navigator.of(context).pop(_correctlyAnsweredQuestions); 
             },
             child: const Text('العودة'),
           ),
@@ -120,16 +69,17 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   Color _getOptionColor(int index) {
-    if (!_answered) {
-      return Colors.grey.shade200;
-    }
-    if (index == widget.questions[_currentQuestionIndex].correctAnswerIndex) {
-      return Colors.green.shade100;
-    }
-    if (index == _selectedAnswerIndex) {
-      return Colors.red.shade100;
-    }
-    return Colors.grey.shade200;
+    if (!_answered) return Colors.white;
+    if (index == widget.questions[_currentQuestionIndex].correctAnswerIndex) return Colors.green.shade100;
+    if (index == _selectedAnswerIndex) return Colors.red.shade100;
+    return Colors.white;
+  }
+
+   Border? _getOptionBorder(int index) {
+    if (!_answered) return Border.all(color: Colors.grey.shade300);
+    if (index == widget.questions[_currentQuestionIndex].correctAnswerIndex) return Border.all(color: Colors.green, width: 2);
+    if (index == _selectedAnswerIndex) return Border.all(color: Colors.red, width: 2);
+    return Border.all(color: Colors.grey.shade300);
   }
 
   @override
@@ -140,68 +90,51 @@ class _QuizScreenState extends State<QuizScreen> {
     return Directionality(
       textDirection: textDirection,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('اختبار قصير'),
-          automaticallyImplyLeading: false,
-        ),
+        appBar: AppBar(title: const Text('اختبار قصير')),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'السؤال ${_currentQuestionIndex + 1} من ${widget.questions.length}',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
-              ),
+              Text('السؤال ${_currentQuestionIndex + 1} من ${widget.questions.length}'),
               const SizedBox(height: 8),
               LinearPercentIndicator(
                 percent: (_currentQuestionIndex + 1) / widget.questions.length,
                 lineHeight: 10.0,
                 barRadius: const Radius.circular(5),
+                progressColor: Theme.of(context).primaryColor,
                 backgroundColor: Colors.grey.shade300,
-                progressColor: Colors.indigo,
               ),
               const SizedBox(height: 24),
-              Text(
-                currentQuestion.question,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 22),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              ...List.generate(currentQuestion.options.length, (index) {
-                return Card(
-                  color: _getOptionColor(index),
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: InkWell(
-                    onTap: () => _handleAnswer(index),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              currentQuestion.options[index],
-                              style: const TextStyle(fontSize: 16),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Text(currentQuestion.question, style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 22), textAlign: TextAlign.center),
+                      const SizedBox(height: 32),
+                      ...List.generate(currentQuestion.options.length, (index) {
+                        return Card(
+                          elevation: 0,
+                          margin: const EdgeInsets.only(bottom: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: _getOptionBorder(index)!.top,
+                          ),
+                          color: _getOptionColor(index),
+                          child: InkWell(
+                            onTap: () => _handleAnswer(index),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Text(currentQuestion.options[index], style: Theme.of(context).textTheme.bodyLarge),
                             ),
                           ),
-                          const SizedBox(width: 10),
-                          Icon(
-                            _answered
-                                ? (index == currentQuestion.correctAnswerIndex
-                                    ? Icons.check_circle
-                                    : (index == _selectedAnswerIndex ? Icons.cancel : Icons.radio_button_off))
-                                : Icons.radio_button_off,
-                            color: _getOptionColor(index) == Colors.grey.shade200
-                                ? Colors.grey
-                                : (index == currentQuestion.correctAnswerIndex ? Colors.green : Colors.red),
-                          ),
-                        ],
-                      ),
-                    ),
+                        );
+                      }),
+                    ],
                   ),
-                );
-              }),
+                ),
+              ),
             ],
           ),
         ),
