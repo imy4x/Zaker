@@ -7,7 +7,7 @@ class UsageService {
   late SharedPreferences _prefs;
 
   // --- تعديل: حد يومي موحد لجميع أنواع التحليلات ---
-  static const int _dailyLimit = 2;
+  static const int _dailyLimit = 5;
 
   // يتم استدعاؤها عند بدء تشغيل التطبيق
   Future<void> init() async {
