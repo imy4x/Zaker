@@ -7,12 +7,14 @@ class SessionListItem extends StatelessWidget {
   final StudySession session;
   final VoidCallback onTap;
   final VoidCallback onDelete;
+  final VoidCallback onMove; // --- إضافة: دالة جديدة للنقل ---
 
   const SessionListItem({
     super.key,
     required this.session,
     required this.onTap,
     required this.onDelete,
+    required this.onMove, // --- إضافة: دالة جديدة للنقل ---
   });
 
   @override
@@ -27,16 +29,21 @@ class SessionListItem extends StatelessWidget {
         intl.DateFormat('d MMMM yyyy', 'ar').format(session.createdAt);
 
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.grey.shade200)
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(12.0),
           child: Row(
             children: [
               CircularPercentIndicator(
-                radius: 32.0,
-                lineWidth: 7.0,
+                radius: 28.0,
+                lineWidth: 6.0,
                 percent: progress,
                 center: Text(
                   "${(progress * 100).toInt()}%",
@@ -55,7 +62,7 @@ class SessionListItem extends StatelessWidget {
                     Text(
                       session.title,
                       style: theme.textTheme.bodyLarge
-                          ?.copyWith(fontWeight: FontWeight.bold, fontSize: 18),
+                          ?.copyWith(fontWeight: FontWeight.bold, fontSize: 16),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -74,11 +81,29 @@ class SessionListItem extends StatelessWidget {
                   ],
                 ),
               ),
-              IconButton(
-                icon: Icon(Icons.delete_sweep_outlined,
-                    color: Colors.redAccent.withOpacity(0.7)),
-                onPressed: onDelete,
-              )
+              // --- تعديل: استخدام قائمة منبثقة للإجراءات ---
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  if(value == 'move') onMove();
+                  if(value == 'delete') onDelete();
+                },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'move',
+                    child: ListTile(
+                      leading: Icon(Icons.drive_file_move_outline),
+                      title: Text('نقل إلى...'),
+                    ),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'delete',
+                    child: ListTile(
+                      leading: Icon(Icons.delete_sweep_outlined, color: Colors.redAccent),
+                      title: Text('حذف', style: TextStyle(color: Colors.redAccent)),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),

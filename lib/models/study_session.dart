@@ -1,9 +1,9 @@
 import 'flashcard.dart';
 import 'quiz_question.dart';
 
-// تم تعديل النموذج ليناسب القائمة الديناميكية ويحتوي على معرّف فريد
+// --- تعديل: تمت إضافة حقل `listId` لربط الجلسة بقائمة محددة ---
 class StudySession {
-  final String id; // معرّف فريد لكل جلسة
+  final String id;
   String title;
   final DateTime createdAt;
   final String summary;
@@ -11,6 +11,7 @@ class StudySession {
   final List<QuizQuestion> quizQuestions;
   final String languageCode;
   Set<String> correctlyAnsweredQuestions;
+  String? listId; // المعرّف الخاص بالقائمة التي تنتمي إليها الجلسة
 
   StudySession({
     required this.id,
@@ -20,6 +21,7 @@ class StudySession {
     required this.flashcards,
     required this.quizQuestions,
     this.languageCode = 'ar',
+    this.listId, // إضافة الحقل الجديد هنا
     Set<String>? correctlyAnsweredQuestions,
   }) : correctlyAnsweredQuestions = correctlyAnsweredQuestions ?? {};
 
@@ -32,6 +34,7 @@ class StudySession {
       flashcards: (json['flashcards'] as List<dynamic>?)?.map((e) => Flashcard.fromJson(e)).toList() ?? [],
       quizQuestions: (json['quizQuestions'] as List<dynamic>?)?.map((e) => QuizQuestion.fromJson(e)).toList() ?? [],
       languageCode: json['languageCode'] ?? 'ar',
+      listId: json['listId'], // قراءة الحقل الجديد
       correctlyAnsweredQuestions: Set<String>.from(json['correctlyAnsweredQuestions'] as List<dynamic>? ?? []),
     );
   }
@@ -45,6 +48,7 @@ class StudySession {
       'flashcards': flashcards.map((e) => e.toJson()).toList(),
       'quizQuestions': quizQuestions.map((e) => e.toJson()).toList(),
       'languageCode': languageCode,
+      'listId': listId, // حفظ الحقل الجديد
       'correctlyAnsweredQuestions': correctlyAnsweredQuestions.toList(),
     };
   }

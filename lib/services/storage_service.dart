@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zaker/models/study_list.dart';
 import 'package:zaker/models/study_session.dart';
 
 class StorageService {
-  static const _sessionsKey = 'study_sessions_list_v2';
+  static const _sessionsKey = 'study_sessions_list_v3'; // تحديث المفتاح
+  static const _listsKey = 'study_lists_v1'; // مفتاح جديد للقوائم
 
+  // --- دوال خاصة بالجلسات ---
   Future<void> saveSessions(List<StudySession> sessions) async {
     final prefs = await SharedPreferences.getInstance();
     final List<String> sessionsJson = sessions.map((s) => jsonEncode(s.toJson())).toList();
@@ -19,10 +22,32 @@ class StorageService {
         return sessionsJson.map((s) => StudySession.fromJson(jsonDecode(s))).toList();
       } catch (e) {
         print("Error decoding sessions: $e. Clearing old data.");
-        await prefs.remove(_sessionsKey); // Clear corrupted data
+        await prefs.remove(_sessionsKey);
         return [];
       }
     }
-    return []; // إرجاع قائمة فارغة إذا لم توجد جلسات مخزنة
+    return [];
+  }
+
+  // --- دوال جديدة خاصة بالقوائم ---
+  Future<void> saveLists(List<StudyList> lists) async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> listsJson = lists.map((l) => jsonEncode(l.toJson())).toList();
+    await prefs.setStringList(_listsKey, listsJson);
+  }
+
+  Future<List<StudyList>> getLists() async {
+    final prefs = await SharedPreferences.getInstance();
+    final listsJson = prefs.getStringList(_listsKey);
+    if (listsJson != null) {
+      try {
+        return listsJson.map((l) => StudyList.fromJson(jsonDecode(l))).toList();
+      } catch (e) {
+        print("Error decoding lists: $e. Clearing old data.");
+        await prefs.remove(_listsKey);
+        return [];
+      }
+    }
+    return [];
   }
 }

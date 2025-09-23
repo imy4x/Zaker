@@ -6,7 +6,6 @@ import 'package:zaker/constants/app_constants.dart';
 import 'package:zaker/models/flashcard.dart';
 import 'package:zaker/models/quiz_question.dart';
 
-// --- تعديل: enum جديد لتحديد نوع النموذج المطلوب (سريع أو احترافي) ---
 enum ModelType {
   pro,
   flash,
@@ -21,7 +20,6 @@ class GeminiService {
     }
     final apiKey = geminiApiKeys[_currentApiKeyIndex];
     
-    // --- تعديل: اختيار اسم النموذج بناءً على النوع المطلوب ---
     final modelName = switch (modelType) {
       ModelType.pro   => 'gemini-2.5-pro',
       ModelType.flash => 'gemini-2.5-flash',
@@ -30,20 +28,20 @@ class GeminiService {
     return GenerativeModel(
       model: modelName,
       apiKey: apiKey,
-      generationConfig: GenerationConfig(temperature: 0.7)
+      generationConfig: GenerationConfig(temperature: 0.7, responseMimeType: 'application/json')
     );
   }
 
   Future<GenerateContentResponse> _generateContentWithRetry(
     List<Content> prompt,
-    ModelType modelType, // استخدام ModelType
+    ModelType modelType,
     Function(int) onKeyChanged,
   ) async {
     int attempts = 0;
     while (attempts < geminiApiKeys.length) {
       try {
         onKeyChanged(_currentApiKeyIndex);
-        final model = _getModel(modelType); // تمرير النوع للمودل
+        final model = _getModel(modelType);
         final response = await model.generateContent(prompt);
         return response;
       } catch (e) {
@@ -63,7 +61,6 @@ class GeminiService {
     throw Exception('An unexpected error occurred in the AI service.');
   }
 
-  // --- تعديل: تستخدم دائمًا نموذج فلاش للسرعة ---
   Future<Map<String, dynamic>> validateContent(String text, Function(int) onKeyChanged) async {
     final prompt = '''
       Analyze the following text. Determine if it is processable educational content.
@@ -81,9 +78,7 @@ class GeminiService {
     }
   }
 
-  // --- تعديل: تستخدم دائمًا نموذج برو للجودة ---
   Future<String> generateSummary(String text, String targetLanguage, AnalysisDepth depth, Function(int) onKeyChanged) async {
-    // targetLanguage should be "Arabic" or "English"
     String prompt;
     switch (depth) {
       case AnalysisDepth.deep:
@@ -95,6 +90,7 @@ class GeminiService {
           2.  **Examples and Analogies**: For each main concept, provide a clear real-world example and an innovative analogy to solidify understanding.
           3.  **Clear Formatting**: Use Markdown effectively. Utilize headings (`## Main Title`, `### Subtitle`), bullet points (`- point`), and **bold text** for key terms to make the summary easy to read and study.
           4.  **Language**: The final summary must be exclusively in **$targetLanguage**.
+          5.  **Output Format**: The entire output MUST be a single JSON object with one key "summary" containing the markdown string. Example: {"summary": "## Title\\n- Point 1..."}
           **Text to summarize**: """$text"""
         ''';
         break;
@@ -106,6 +102,7 @@ class GeminiService {
           2.  Use a simple example where necessary to clarify complex points.
           3.  Use a clear structure with headings (`##`), bullet points, and **bold text** for terms.
           4.  **Language**: The final summary must be exclusively in **$targetLanguage**.
+          5.  **Output Format**: The entire output MUST be a single JSON object with one key "summary" containing the markdown string.
           **Text to summarize**: """$text"""
         ''';
         break;
@@ -117,19 +114,20 @@ class GeminiService {
           2.  Avoid long explanations or examples.
           3.  Use a structured bulleted list (`-`). Make key terms **bold**.
           4.  **Language**: The final summary must be exclusively in **$targetLanguage**.
+          5.  **Output Format**: The entire output MUST be a single JSON object with one key "summary" containing the markdown string.
           **Text to summarize**: """$text"""
         ''';
         break;
     }
      try {
       final response = await _generateContentWithRetry([Content.text(prompt)], ModelType.pro, onKeyChanged);
-      return response.text ?? 'The AI could not generate a summary.';
+      final jsonResponse = jsonDecode(response.text!);
+      return jsonResponse['summary'] ?? 'The AI could not generate a summary.';
     } catch (e) {
       rethrow;
     }
   }
 
-  // --- تعديل: تستخدم دائمًا نموذج برو للجودة ---
   Future<List<QuizQuestion>> generateQuiz(String text, String targetLanguage, Function(int) onKeyChanged) async {
     final prompt = '''
       You are a professional educational test designer. Your task is to create a diverse question bank from the following text to measure different levels of understanding.
@@ -142,14 +140,14 @@ class GeminiService {
           - **10% very_hard**: Inferential questions testing a very deep understanding of the material and requiring critical thinking.
       2.  **Smart Distractors**: The incorrect options (distractors) must be plausible and convincing, not obviously wrong.
       3.  **Language**: The test must be exclusively in **$targetLanguage**.
-      4.  **Format**: Return the result only as a valid JSON array. Each question must include a "difficulty" key with the value "easy", "medium", "hard", or "very_hard".
-          `[{"question":"...","options":["...","...","...","..."],"correctAnswerIndex":0, "difficulty":"easy"},...]`
+      4.  **Format**: Return the result only as a valid JSON object with one key "questions" which contains a JSON array. Each question must include a "difficulty" key with the value "easy", "medium", "hard", or "very_hard".
+          `{"questions": [{"question":"...","options":["...","...","...","..."],"correctAnswerIndex":0, "difficulty":"easy"},...]}`
       **Source Text**: """$text"""
     ''';
     try {
       final response = await _generateContentWithRetry([Content.text(prompt)], ModelType.pro, onKeyChanged);
-      final cleanJson = response.text!.replaceAll('```json', '').replaceAll('```', '').trim();
-      final List<dynamic> jsonList = jsonDecode(cleanJson);
+      final jsonResponse = jsonDecode(response.text!);
+      final List<dynamic> jsonList = jsonResponse['questions'];
       return jsonList.map((item) => QuizQuestion.fromJson(item)).toList();
     } catch (e) {
       print("Error parsing quiz: $e");
@@ -157,9 +155,8 @@ class GeminiService {
     }
   }
   
-  // --- تعديل: تستخدم دائمًا نموذج فلاش للسرعة ---
   Future<String> extractTextFromImage(List<File> imageFiles) async {
-    final prompt = TextPart("Extract all text from these images in order. Preserve the original structure, paragraphs, and language.");
+    final prompt = TextPart("Extract all text from these images in order. Preserve the original structure, paragraphs, and language. Combine the text from all images into a single continuous block.");
     final imageParts = await Future.wait(imageFiles.map((file) async {
       final bytes = await file.readAsBytes();
       final mimeType = file.path.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
@@ -178,24 +175,24 @@ class GeminiService {
       throw Exception('Failed to analyze the image. It might be too large or corrupted.');
     }
   }
-
-  // --- تعديل: تستخدم دائمًا نموذج برو للجودة ---
+  
+  // --- تعديل: تم تحديث الـ Prompt لجعل البطاقات أكثر إيجازاً ---
   Future<List<Flashcard>> generateFlashcards(String text, String targetLanguage, AnalysisDepth depth, Function(int) onKeyChanged) async {
     final prompt = '''
-      You are an effective teacher creating study aids to promote deep understanding, not just memorization.
-      **Task**: From the following text, create as many useful flashcards as possible (up to 50).
-      **Instructions**:
-      1.  **Thought-Provoking Questions**: The "question" on the card should be a thought-provoking query about a key concept, a "why" or "how" question, not just "what is".
-      2.  **Comprehensive Answers**: The "answer" should be a concise but complete explanation, not just a single word or short definition. It should fully clarify the concept raised in the question.
+      You are an expert at creating concise and effective study materials. Your task is to extract the most important concepts from the text and turn them into brief flashcards for quick review.
+      **Task**: Create as many flashcards as possible (up to 50).
+      **Strict Instructions**:
+      1.  **Concise Questions**: The "question" side of the card must be a short, direct question about a key term or concept. It should be easy to read at a glance.
+      2.  **Brief Answers**: The "answer" must be a highly summarized and brief explanation. It should capture the essence of the concept in one or two short sentences at most.
       3.  **Language**: The flashcards must be exclusively in **$targetLanguage**.
-      4.  **Format**: Return the result only as a valid JSON array in this format: `[{"question":"...","answer":"..."},...]`
+      4.  **Format**: Return the result ONLY as a valid JSON object with one key "flashcards" which contains a JSON array in this format: `{"flashcards": [{"question":"...","answer":"..."},...]}`
       **Source Text**:
       """$text"""
     ''';
     try {
       final response = await _generateContentWithRetry([Content.text(prompt)], ModelType.pro, onKeyChanged);
-      final cleanJson = response.text!.replaceAll('```json', '').replaceAll('```', '').trim();
-      final List<dynamic> jsonList = jsonDecode(cleanJson);
+      final jsonResponse = jsonDecode(response.text!);
+      final List<dynamic> jsonList = jsonResponse['flashcards'];
       return jsonList.map((item) => Flashcard.fromJson(item)).toList();
     } catch (e) {
       print("Error parsing flashcards: $e");
@@ -203,3 +200,4 @@ class GeminiService {
     }
   }
 }
+
