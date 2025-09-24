@@ -176,14 +176,18 @@ class GeminiService {
     }
   }
   
-  // --- تعديل: تم تحديث الـ Prompt لجعل البطاقات أكثر إيجازاً ---
+  // --- تعديل: تم تحديث الـ Prompt ليركز على أسئلة الاختبارات الشائعة ---
   Future<List<Flashcard>> generateFlashcards(String text, String targetLanguage, AnalysisDepth depth, Function(int) onKeyChanged) async {
     final prompt = '''
-      You are an expert at creating concise and effective study materials. Your task is to extract the most important concepts from the text and turn them into brief flashcards for quick review.
-      **Task**: Create as many flashcards as possible (up to 50).
+      You are an expert exam creator. Your task is to analyze the provided educational text and generate flashcards based on questions that are highly likely to appear in an exam.
+      **Task**: Create as many relevant flashcards as possible (up to 50).
       **Strict Instructions**:
-      1.  **Concise Questions**: The "question" side of the card must be a short, direct question about a key term or concept. It should be easy to read at a glance.
-      2.  **Brief Answers**: The "answer" must be a highly summarized and brief explanation. It should capture the essence of the concept in one or two short sentences at most.
+      1.  **Focus on Exam-Style Questions**: Prioritize creating questions that start with common exam keywords. Specifically look for opportunities to create questions like:
+          - "Define..." (عرف...)
+          - "List..." or "Enumerate..." (عدد... / اذكر...)
+          - "Explain why..." (علل...)
+          - "Explain briefly..." (اشرح باختصار...)
+      2.  **Direct and Clear**: The question must be direct and unambiguous. The answer must be accurate and concise, directly addressing the question.
       3.  **Language**: The flashcards must be exclusively in **$targetLanguage**.
       4.  **Format**: Return the result ONLY as a valid JSON object with one key "flashcards" which contains a JSON array in this format: `{"flashcards": [{"question":"...","answer":"..."},...]}`
       **Source Text**:

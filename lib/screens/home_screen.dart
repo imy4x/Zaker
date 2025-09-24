@@ -20,7 +20,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   Future<void> _createNewSession() async {
-    final details = await _showSessionOptionsDialog();
+    final details = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => const _SessionOptionsDialog(),
+    );
     if (details == null || !mounted) return;
 
     final provider = Provider.of<StudyProvider>(context, listen: false);
@@ -45,21 +48,13 @@ class _HomeScreenState extends State<HomeScreen> {
       provider.resetState();
     }
   }
-
-  // --- تعديل: تم تبسيط هذه الدالة لاستخدام الويدجت الجديد ---
-  Future<Map<String, dynamic>?> _showSessionOptionsDialog() {
-    return showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (context) {
-        return const _SessionOptionsDialog();
-      },
-    );
-  }
   
-  void _showCreateListDialog() {
-    final controller = TextEditingController();
+  void _showCreateOrRenameListDialog({StudyList? existingList}) {
+    final isEditing = existingList != null;
+    final controller = TextEditingController(text: isEditing ? existingList.name : '');
+
     showDialog(context: context, builder: (context) => AlertDialog(
-      title: const Text('إنشاء قائمة جديدة'),
+      title: Text(isEditing ? 'إعادة تسمية القائمة' : 'إنشاء قائمة جديدة'),
       content: TextField(
         controller: controller,
         decoration: const InputDecoration(labelText: 'اسم القائمة'),
@@ -69,13 +64,40 @@ class _HomeScreenState extends State<HomeScreen> {
         TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
         ElevatedButton(onPressed: () {
           if (controller.text.isNotEmpty) {
-            context.read<StudyProvider>().createList(controller.text);
+            final provider = context.read<StudyProvider>();
+            if (isEditing) {
+              provider.renameList(existingList.id, controller.text);
+            } else {
+              provider.createList(controller.text);
+            }
             Navigator.pop(context);
           }
-        }, child: const Text('إنشاء')),
+        }, child: Text(isEditing ? 'حفظ' : 'إنشاء')),
       ],
     )).whenComplete(() => controller.dispose());
   }
+
+  void _showRenameSessionDialog(StudySession session) {
+    final controller = TextEditingController(text: session.title);
+    showDialog(context: context, builder: (context) => AlertDialog(
+      title: const Text('إعادة تسمية الجلسة'),
+      content: TextField(
+        controller: controller,
+        decoration: const InputDecoration(labelText: 'عنوان الجلسة'),
+        autofocus: true,
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
+        ElevatedButton(onPressed: () {
+          if (controller.text.isNotEmpty) {
+            context.read<StudyProvider>().renameSession(session.id, controller.text);
+            Navigator.pop(context);
+          }
+        }, child: const Text('حفظ')),
+      ],
+    )).whenComplete(() => controller.dispose());
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.create_new_folder_outlined),
-            onPressed: _showCreateListDialog,
+            onPressed: _showCreateOrRenameListDialog,
             tooltip: 'إنشاء قائمة جديدة',
           )
         ],
@@ -103,12 +125,10 @@ class _HomeScreenState extends State<HomeScreen> {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
             children: [
-              // عرض القوائم
               ...lists.map((list) {
                 final listSessions = sessions.where((s) => s.listId == list.id).toList();
                 return _buildListTile(provider, list, listSessions);
               }),
-              // عرض الجلسات غير المصنفة
               if(uncategorizedSessions.isNotEmpty)
                 _buildListTile(provider, null, uncategorizedSessions),
             ],
@@ -142,13 +162,33 @@ class _HomeScreenState extends State<HomeScreen> {
         leading: Icon(icon, color: isUncategorized ? Colors.grey : list.color),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         subtitle: Text('${listSessions.length} جلسات'),
+        trailing: isUncategorized ? null : PopupMenuButton<String>(
+          onSelected: (value) async {
+            if (value == 'rename') {
+              _showCreateOrRenameListDialog(existingList: list);
+            } else if (value == 'delete') {
+              final confirm = await AppDialogs.showConfirmDialog(
+                context, 
+                title: 'تأكيد الحذف',
+                content: 'هل أنت متأكد من حذف قائمة "${list!.name}"؟ سيتم نقل الجلسات التابعة لها إلى "غير مصنف".'
+              );
+              if (confirm) {
+                provider.deleteList(list.id);
+              }
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(value: 'rename', child: Text('إعادة تسمية')),
+            const PopupMenuItem(value: 'delete', child: Text('حذف')),
+          ],
+        ),
         initiallyExpanded: true,
         childrenPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         children: listSessions.map((session) => SessionListItem(
           session: session,
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => StudyMaterialScreen(session: session))),
           onDelete: () async {
-            final confirm = await AppDialogs.showConfirmDialog(context);
+            final confirm = await AppDialogs.showConfirmDialog(context, title: 'تأكيد الحذف', content: 'هل أنت متأكد من حذف هذه الجلسة؟');
             if (confirm) await provider.deleteSession(session.id);
           },
           onMove: () async {
@@ -157,6 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 await provider.moveSessionToList(session.id, selectedListId);
              }
           },
+          onRename: () => _showRenameSessionDialog(session),
         )).toList(),
       ),
     );
@@ -211,8 +252,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-
-// --- إضافة: ويدجت جديد لإدارة حالة نافذة الخيارات بشكل آمن ---
 class _SessionOptionsDialog extends StatefulWidget {
   const _SessionOptionsDialog();
 
@@ -298,7 +337,7 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                         const Center(child: Text('لم يتم اختيار أي ملفات بعد.')),
                       ..._selectedFiles.map((file) => ListTile(
                         leading: const Icon(Icons.description_outlined),
-                        title: Text(file.name, style: const TextStyle(fontSize: 12)),
+                        title: Text(file.name, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis,),
                         trailing: IconButton(
                           icon: const Icon(Icons.close, size: 16),
                           onPressed: () => setState(() => _selectedFiles.remove(file)),

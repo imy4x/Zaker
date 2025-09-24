@@ -26,13 +26,18 @@ class AppDialogs {
     );
   }
 
-  static Future<bool> showConfirmDialog(BuildContext context) async {
+  // --- تعديل: الدالة الآن تقبل عنوان ومحتوى مخصصين ---
+  static Future<bool> showConfirmDialog(
+    BuildContext context, {
+    String title = 'تأكيد الحذف',
+    String content = 'هل أنت متأكد من رغبتك في الحذف؟ لا يمكن التراجع عن هذا الإجراء.',
+  }) async {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('تأكيد الحذف'),
-        content: const Text('هل أنت متأكد من أنك تريد حذف هذه الجلسة؟ لا يمكن التراجع عن هذا الإجراء.'),
+        title: Text(title),
+        content: Text(content),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

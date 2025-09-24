@@ -4,10 +4,10 @@ import 'package:zaker/models/study_list.dart';
 import 'package:zaker/models/study_session.dart';
 
 class StorageService {
-  static const _sessionsKey = 'study_sessions_list_v3'; // تحديث المفتاح
-  static const _listsKey = 'study_lists_v1'; // مفتاح جديد للقوائم
+  static const _sessionsKey = 'study_sessions_list_v3';
+  static const _listsKey = 'study_lists_v1';
 
-  // --- دوال خاصة بالجلسات ---
+  // --- دوال الجلسات ---
   Future<void> saveSessions(List<StudySession> sessions) async {
     final prefs = await SharedPreferences.getInstance();
     final List<String> sessionsJson = sessions.map((s) => jsonEncode(s.toJson())).toList();
@@ -29,7 +29,7 @@ class StorageService {
     return [];
   }
 
-  // --- دوال جديدة خاصة بالقوائم ---
+  // --- دوال القوائم ---
   Future<void> saveLists(List<StudyList> lists) async {
     final prefs = await SharedPreferences.getInstance();
     final List<String> listsJson = lists.map((l) => jsonEncode(l.toJson())).toList();
@@ -51,3 +51,4 @@ class StorageService {
     return [];
   }
 }
+
