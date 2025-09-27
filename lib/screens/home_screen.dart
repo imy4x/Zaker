@@ -32,11 +32,16 @@ class _HomeScreenState extends State<HomeScreen> {
       details['language'] as String,
       details['title'] as String,
       details['depth'] as AnalysisDepth,
+      customNotes: details['notes'] as String?,
     );
 
     if (!mounted) return;
 
     if (provider.state == AppState.success && newSession != null) {
+      // Show warning if some components failed
+      if (provider.warningMessage.isNotEmpty) {
+        AppDialogs.showErrorDialog(context, provider.warningMessage, title: 'تنبيه');
+      }
       provider.resetState();
       Navigator.push(
         context,
@@ -262,6 +267,7 @@ class _SessionOptionsDialog extends StatefulWidget {
 class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
+  late final TextEditingController _notesController;
   List<PlatformFile> _selectedFiles = [];
   String _selectedLanguage = 'العربية';
   AnalysisDepth _selectedDepth = AnalysisDepth.medium;
@@ -272,11 +278,13 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
     _titleController = TextEditingController(
       text: 'جلسة مذاكرة ${DateTime.now().day}/${DateTime.now().month}',
     );
+    _notesController = TextEditingController();
   }
 
   @override
   void dispose() {
     _titleController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
   
@@ -366,6 +374,16 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                       value!.isEmpty ? 'العنوان مطلوب' : null,
                 ),
                 const SizedBox(height: 20),
+                TextFormField(
+                  controller: _notesController,
+                  decoration: const InputDecoration(
+                    labelText: 'ملاحظات إضافية (اختياري)',
+                    hintText: 'مثال: ركز على الفصل الثالث أو اشرح المصطلحات بالتفصيل',
+                  ),
+                  maxLines: 3,
+                  minLines: 2,
+                ),
+                const SizedBox(height: 20),
                 const Text('لغة التحليل', style: TextStyle(fontWeight: FontWeight.bold)),
                 Row(
                   children: [
@@ -437,6 +455,7 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                         'title': _titleController.text,
                         'language': _selectedLanguage,
                         'depth': _selectedDepth,
+                        'notes': _notesController.text.trim(),
                       });
                     }
                   }

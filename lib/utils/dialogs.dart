@@ -3,16 +3,17 @@ import 'package:lottie/lottie.dart';
 
 class AppDialogs {
 
-  static void showErrorDialog(BuildContext context, String message) {
+  static void showErrorDialog(BuildContext context, String message, {String title = 'حدث خطأ'}) {
+    final isWarning = title == 'تنبيه';
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.error_outline, color: Colors.red),
-            SizedBox(width: 8),
-            Text('حدث خطأ'),
+            Icon(isWarning ? Icons.warning_amber : Icons.error_outline, color: isWarning ? Colors.orange : Colors.red),
+            const SizedBox(width: 8),
+            Text(title),
           ],
         ),
         content: Text(message),

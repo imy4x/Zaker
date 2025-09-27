@@ -32,6 +32,9 @@ class StudyProvider extends ChangeNotifier {
 
   String _errorMessage = '';
   String get errorMessage => _errorMessage;
+  
+  String _warningMessage = '';
+  String get warningMessage => _warningMessage;
 
   double _progressValue = 0.0;
   double get progressValue => _progressValue;
@@ -92,6 +95,7 @@ class StudyProvider extends ChangeNotifier {
     String targetLanguage, 
     String title,
     AnalysisDepth depth,
+    {String? customNotes}
   ) async {
     if (!_usageService.canUse(count: files.length)) {
       _errorMessage = 'رصيدك اليومي لا يكفي لتحليل هذا العدد من الملفات.';
@@ -123,24 +127,54 @@ class StudyProvider extends ChangeNotifier {
         throw Exception('هذا المستند لا يبدو كمادة دراسية.\nالسبب: $reason');
       }
 
-      _updateProgress(0.5, 'الخطوة 3/${files.length + 3}: إنشاء الملخص والبطاقات...');
-      final summaryFuture = _aiService.generateSummary(combinedText, targetLanguage, depth, updateKeyIndex);
-      final flashcardsFuture = _aiService.generateFlashcards(combinedText, targetLanguage, depth, updateKeyIndex);
-      
-      _updateProgress(0.75, 'الخطوة 4/${files.length + 3}: بناء بنك الأسئلة...');
-      final quizFuture = _aiService.generateQuiz(combinedText, targetLanguage, updateKeyIndex);
+      // Generate summary first (mandatory)
+      _updateProgress(0.5, 'الخطوة 3/${files.length + 3}: إنشاء الملخص...');
+      String summary;
+      try {
+        summary = await _aiService.generateSummary(combinedText, targetLanguage, depth, updateKeyIndex, customNotes: customNotes);
+      } catch (e) {
+        throw Exception('فشل في إنشاء الملخص. حاول مرة أخرى.');
+      }
 
-      final results = await Future.wait([summaryFuture, flashcardsFuture, quizFuture]);
+      // Generate flashcards (optional)
+      _updateProgress(0.7, 'الخطوة 4/${files.length + 3}: إنشاء البطاقات التعليمية...');
+      List<Flashcard> flashcards = [];
+      try {
+        flashcards = await _aiService.generateFlashcards(combinedText, targetLanguage, depth, updateKeyIndex, customNotes: customNotes);
+      } catch (e) {
+        print('فشل في إنشاء البطاقات: $e');
+        // Continue without flashcards
+      }
+      
+      // Generate quiz questions (optional)
+      _updateProgress(0.85, 'الخطوة 5/${files.length + 3}: بناء بنك الأسئلة...');
+      List<QuizQuestion> quizQuestions = [];
+      try {
+        quizQuestions = await _aiService.generateQuiz(combinedText, targetLanguage, updateKeyIndex, customNotes: customNotes);
+      } catch (e) {
+        print('فشل في إنشاء الاختبارات: $e');
+        // Continue without quiz questions
+      }
       
       final newSession = StudySession(
         id: _uuid.v4(),
         title: title,
         createdAt: DateTime.now(),
         languageCode: targetLanguage == 'العربية' ? 'ar' : 'en',
-        summary: results[0] as String,
-        flashcards: results[1] as List<Flashcard>,
-        quizQuestions: results[2] as List<QuizQuestion>,
+        summary: summary,
+        flashcards: flashcards,
+        quizQuestions: quizQuestions,
       );
+      
+      // Show warning if some components failed
+      _warningMessage = '';
+      if (flashcards.isEmpty && quizQuestions.isEmpty) {
+        _warningMessage = 'تنبيه: فشل في إنشاء البطاقات والاختبارات. تم حفظ الملخص فقط.';
+      } else if (flashcards.isEmpty) {
+        _warningMessage = 'تنبيه: فشل في إنشاء البطاقات التعليمية.';
+      } else if (quizQuestions.isEmpty) {
+        _warningMessage = 'تنبيه: فشل في إنشاء الاختبارات.';
+      }
       
       _sessions.insert(0, newSession);
       await _storageService.saveSessions(_sessions);
@@ -204,6 +238,7 @@ class StudyProvider extends ChangeNotifier {
     await _usageService.init(); 
     _state = AppState.idle;
     _errorMessage = '';
+    _warningMessage = '';
     _progressValue = 0.0;
     _progressMessage = '';
     notifyListeners();

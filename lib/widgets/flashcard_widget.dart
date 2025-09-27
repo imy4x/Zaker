@@ -13,6 +13,7 @@ class FlashcardWidget extends StatefulWidget {
 
 class _FlashcardWidgetState extends State<FlashcardWidget> {
   final CardSwiperController _controller = CardSwiperController();
+  int _currentIndex = 0;
   
   @override
   Widget build(BuildContext context) {
@@ -22,6 +23,62 @@ class _FlashcardWidgetState extends State<FlashcardWidget> {
 
     return Column(
       children: [
+        // Card counter
+        Container(
+          margin: const EdgeInsets.only(bottom: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                Theme.of(context).colorScheme.secondary.withOpacity(0.08),
+              ],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${_currentIndex + 1}',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'من ${widget.flashcards.length} بطاقة',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.primary,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
         Expanded(
           child: CardSwiper(
             controller: _controller,
@@ -31,6 +88,12 @@ class _FlashcardWidgetState extends State<FlashcardWidget> {
               flashcard: widget.flashcards[index]
             ),
             allowedSwipeDirection: const AllowedSwipeDirection.symmetric(horizontal: true),
+            onSwipe: (previousIndex, currentIndex, direction) {
+              setState(() {
+                _currentIndex = currentIndex ?? 0;
+              });
+              return true;
+            },
           ),
         ),
         const SizedBox(height: 20),
@@ -40,7 +103,12 @@ class _FlashcardWidgetState extends State<FlashcardWidget> {
             ElevatedButton.icon(
               icon: const Icon(Icons.arrow_back_rounded),
               label: const Text('السابق'),
-              onPressed: () => _controller.swipe(CardSwiperDirection.left),
+              onPressed: _currentIndex > 0 ? () {
+                _controller.swipe(CardSwiperDirection.left);
+                setState(() {
+                  _currentIndex = (_currentIndex - 1).clamp(0, widget.flashcards.length - 1);
+                });
+              } : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.grey.shade200,
                 foregroundColor: Colors.black,
@@ -49,7 +117,12 @@ class _FlashcardWidgetState extends State<FlashcardWidget> {
              ElevatedButton.icon(
               icon: const Icon(Icons.arrow_forward_rounded),
               label: const Text('التالي'),
-              onPressed: () => _controller.swipe(CardSwiperDirection.right),
+              onPressed: _currentIndex < widget.flashcards.length - 1 ? () {
+                _controller.swipe(CardSwiperDirection.right);
+                setState(() {
+                  _currentIndex = (_currentIndex + 1).clamp(0, widget.flashcards.length - 1);
+                });
+              } : null,
             ),
           ],
         )
@@ -131,31 +204,77 @@ class _FlashcardContentState extends State<_FlashcardContent> with SingleTickerP
   }
 
   Widget _buildCardSide({required String label, required String text}) {
-    return Card(
-      elevation: 8,
-      shadowColor: Colors.black.withOpacity(0.1),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Theme.of(context).colorScheme.surface,
+            Theme.of(context).colorScheme.surface.withOpacity(0.95),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Container(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(28.0),
         child: Column(
           children: [
-            Text(
-              label, 
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColor
-              )
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.primary,
+                  fontSize: 13,
+                ),
+              ),
             ),
             const Spacer(),
             Center(
               child: SingleChildScrollView(
-                child: Text(text, textAlign: TextAlign.center, style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 22)),
+                child: Text(
+                  text,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                    fontSize: 20,
+                    height: 1.4,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ),
             const Spacer(),
-            Text(
-              "انقر للقلب",
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
-            )
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceVariant,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                "انقر للقلب",
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontSize: 11,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
           ],
         ),
       ),

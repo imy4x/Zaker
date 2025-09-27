@@ -78,8 +78,12 @@ class GeminiService {
     }
   }
 
-  Future<String> generateSummary(String text, String targetLanguage, AnalysisDepth depth, Function(int) onKeyChanged) async {
+  Future<String> generateSummary(String text, String targetLanguage, AnalysisDepth depth, Function(int) onKeyChanged, {String? customNotes}) async {
     String prompt;
+    final customNotesSection = customNotes != null && customNotes.isNotEmpty
+        ? '\n          6.  **Special Instructions**: Pay special attention to the following user requirements: $customNotes'
+        : '';
+    
     switch (depth) {
       case AnalysisDepth.deep:
         prompt = '''
@@ -90,7 +94,7 @@ class GeminiService {
           2.  **Examples and Analogies**: For each main concept, provide a clear real-world example and an innovative analogy to solidify understanding.
           3.  **Clear Formatting**: Use Markdown effectively. Utilize headings (`## Main Title`, `### Subtitle`), bullet points (`- point`), and **bold text** for key terms to make the summary easy to read and study.
           4.  **Language**: The final summary must be exclusively in **$targetLanguage**.
-          5.  **Output Format**: The entire output MUST be a single JSON object with one key "summary" containing the markdown string. Example: {"summary": "## Title\\n- Point 1..."}
+          5.  **Output Format**: The entire output MUST be a single JSON object with one key "summary" containing the markdown string. Example: {"summary": "## Title\\n- Point 1..."}$customNotesSection
           **Text to summarize**: """$text"""
         ''';
         break;
@@ -102,7 +106,7 @@ class GeminiService {
           2.  Use a simple example where necessary to clarify complex points.
           3.  Use a clear structure with headings (`##`), bullet points, and **bold text** for terms.
           4.  **Language**: The final summary must be exclusively in **$targetLanguage**.
-          5.  **Output Format**: The entire output MUST be a single JSON object with one key "summary" containing the markdown string.
+          5.  **Output Format**: The entire output MUST be a single JSON object with one key "summary" containing the markdown string.$customNotesSection
           **Text to summarize**: """$text"""
         ''';
         break;
@@ -114,7 +118,7 @@ class GeminiService {
           2.  Avoid long explanations or examples.
           3.  Use a structured bulleted list (`-`). Make key terms **bold**.
           4.  **Language**: The final summary must be exclusively in **$targetLanguage**.
-          5.  **Output Format**: The entire output MUST be a single JSON object with one key "summary" containing the markdown string.
+          5.  **Output Format**: The entire output MUST be a single JSON object with one key "summary" containing the markdown string.$customNotesSection
           **Text to summarize**: """$text"""
         ''';
         break;
@@ -128,7 +132,11 @@ class GeminiService {
     }
   }
 
-  Future<List<QuizQuestion>> generateQuiz(String text, String targetLanguage, Function(int) onKeyChanged) async {
+  Future<List<QuizQuestion>> generateQuiz(String text, String targetLanguage, Function(int) onKeyChanged, {String? customNotes}) async {
+    final customNotesSection = customNotes != null && customNotes.isNotEmpty
+        ? '\n      5.  **Special Instructions**: Pay special attention to the following user requirements when creating questions: $customNotes'
+        : '';
+        
     final prompt = '''
       You are a professional educational test designer. Your task is to create a diverse question bank from the following text to measure different levels of understanding.
       **Task**: Create as many multiple-choice questions as possible (up to 50).
@@ -141,7 +149,7 @@ class GeminiService {
       2.  **Smart Distractors**: The incorrect options (distractors) must be plausible and convincing, not obviously wrong.
       3.  **Language**: The test must be exclusively in **$targetLanguage**.
       4.  **Format**: Return the result only as a valid JSON object with one key "questions" which contains a JSON array. Each question must include a "difficulty" key with the value "easy", "medium", "hard", or "very_hard".
-          `{"questions": [{"question":"...","options":["...","...","...","..."],"correctAnswerIndex":0, "difficulty":"easy"},...]}`
+          `{"questions": [{"question":"...","options":["...","...","...","..."],"correctAnswerIndex":0, "difficulty":"easy"},...]}`$customNotesSection
       **Source Text**: """$text"""
     ''';
     try {
@@ -177,7 +185,11 @@ class GeminiService {
   }
   
   // --- تعديل: تم تحديث الـ Prompt ليركز على أسئلة الاختبارات الشائعة ---
-  Future<List<Flashcard>> generateFlashcards(String text, String targetLanguage, AnalysisDepth depth, Function(int) onKeyChanged) async {
+  Future<List<Flashcard>> generateFlashcards(String text, String targetLanguage, AnalysisDepth depth, Function(int) onKeyChanged, {String? customNotes}) async {
+    final customNotesSection = customNotes != null && customNotes.isNotEmpty
+        ? '\n      5.  **Special Instructions**: Pay special attention to the following user requirements when creating flashcards: $customNotes'
+        : '';
+        
     final prompt = '''
       You are an expert exam creator. Your task is to analyze the provided educational text and generate flashcards based on questions that are highly likely to appear in an exam.
       **Task**: Create as many relevant flashcards as possible (up to 50).
@@ -189,7 +201,7 @@ class GeminiService {
           - "Explain briefly..." (اشرح باختصار...)
       2.  **Direct and Clear**: The question must be direct and unambiguous. The answer must be accurate and concise, directly addressing the question.
       3.  **Language**: The flashcards must be exclusively in **$targetLanguage**.
-      4.  **Format**: Return the result ONLY as a valid JSON object with one key "flashcards" which contains a JSON array in this format: `{"flashcards": [{"question":"...","answer":"..."},...]}`
+      4.  **Format**: Return the result ONLY as a valid JSON object with one key "flashcards" which contains a JSON array in this format: `{"flashcards": [{"question":"...","answer":"..."},...]}`$customNotesSection
       **Source Text**:
       """$text"""
     ''';
