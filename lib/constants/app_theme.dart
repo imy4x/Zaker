@@ -246,11 +246,25 @@ class AppTheme {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
-      labelStyle: GoogleFonts.inter(
+      labelStyle: GoogleFonts.cairo(
         fontSize: 13,
         fontWeight: FontWeight.w500,
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    ),
+    
+    // Remove horizontal line from ExpansionTile
+    expansionTileTheme: const ExpansionTileThemeData(
+      tilePadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      childrenPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      collapsedShape: RoundedRectangleBorder(),
+      shape: RoundedRectangleBorder(),
+    ),
+    
+    dividerTheme: const DividerThemeData(
+      color: Colors.transparent,
+      thickness: 0,
+      space: 0,
     ),
   );
 }

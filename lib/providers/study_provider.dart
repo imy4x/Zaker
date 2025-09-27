@@ -127,54 +127,26 @@ class StudyProvider extends ChangeNotifier {
         throw Exception('هذا المستند لا يبدو كمادة دراسية.\nالسبب: $reason');
       }
 
-      // Generate summary first (mandatory)
       _updateProgress(0.5, 'الخطوة 3/${files.length + 3}: إنشاء الملخص...');
-      String summary;
-      try {
-        summary = await _aiService.generateSummary(combinedText, targetLanguage, depth, updateKeyIndex, customNotes: customNotes);
-      } catch (e) {
-        throw Exception('فشل في إنشاء الملخص. حاول مرة أخرى.');
-      }
-
-      // Generate flashcards (optional)
-      _updateProgress(0.7, 'الخطوة 4/${files.length + 3}: إنشاء البطاقات التعليمية...');
-      List<Flashcard> flashcards = [];
-      try {
-        flashcards = await _aiService.generateFlashcards(combinedText, targetLanguage, depth, updateKeyIndex, customNotes: customNotes);
-      } catch (e) {
-        print('فشل في إنشاء البطاقات: $e');
-        // Continue without flashcards
-      }
+      final summaryFuture = _aiService.generateSummary(combinedText, targetLanguage, depth, updateKeyIndex, customNotes: customNotes);
       
-      // Generate quiz questions (optional)
+      _updateProgress(0.7, 'الخطوة 4/${files.length + 3}: إنشاء البطاقات التعليمية...');
+      final flashcardsFuture = _aiService.generateFlashcards(combinedText, targetLanguage, depth, updateKeyIndex, customNotes: customNotes);
+      
       _updateProgress(0.85, 'الخطوة 5/${files.length + 3}: بناء بنك الأسئلة...');
-      List<QuizQuestion> quizQuestions = [];
-      try {
-        quizQuestions = await _aiService.generateQuiz(combinedText, targetLanguage, updateKeyIndex, customNotes: customNotes);
-      } catch (e) {
-        print('فشل في إنشاء الاختبارات: $e');
-        // Continue without quiz questions
-      }
+      final quizFuture = _aiService.generateQuiz(combinedText, targetLanguage, updateKeyIndex, customNotes: customNotes);
+
+      final results = await Future.wait([summaryFuture, flashcardsFuture, quizFuture]);
       
       final newSession = StudySession(
         id: _uuid.v4(),
         title: title,
         createdAt: DateTime.now(),
         languageCode: targetLanguage == 'العربية' ? 'ar' : 'en',
-        summary: summary,
-        flashcards: flashcards,
-        quizQuestions: quizQuestions,
+        summary: results[0] as String,
+        flashcards: results[1] as List<Flashcard>,
+        quizQuestions: results[2] as List<QuizQuestion>,
       );
-      
-      // Show warning if some components failed
-      _warningMessage = '';
-      if (flashcards.isEmpty && quizQuestions.isEmpty) {
-        _warningMessage = 'تنبيه: فشل في إنشاء البطاقات والاختبارات. تم حفظ الملخص فقط.';
-      } else if (flashcards.isEmpty) {
-        _warningMessage = 'تنبيه: فشل في إنشاء البطاقات التعليمية.';
-      } else if (quizQuestions.isEmpty) {
-        _warningMessage = 'تنبيه: فشل في إنشاء الاختبارات.';
-      }
       
       _sessions.insert(0, newSession);
       await _storageService.saveSessions(_sessions);
@@ -187,7 +159,13 @@ class StudyProvider extends ChangeNotifier {
       return newSession;
 
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst("Exception: ", "");
+      // Check if it's an AI quota/overload error
+      if (e.toString().contains('Quota') || e.toString().contains('exceeded') || 
+          e.toString().contains('quota') || e.toString().contains('overloaded')) {
+        _errorMessage = 'الذكاء الاصطناعي مرهق حالياً \u{1F614}\n\nيرجى المحاولة مرة أخرى بعد بضع دقائق. \u{1F504}';
+      } else {
+        _errorMessage = e.toString().replaceFirst("Exception: ", "");
+      }
       _state = AppState.error;
       notifyListeners();
       return null;

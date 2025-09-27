@@ -17,6 +17,13 @@ class _FlashcardWidgetState extends State<FlashcardWidget> {
   final CardSwiperController _controller = CardSwiperController();
   int _currentIndex = 0;
   
+  void _navigateToCard(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+    _controller.moveTo(index);
+  }
+  
   @override
   Widget build(BuildContext context) {
     if (widget.flashcards.isEmpty) {
@@ -106,48 +113,118 @@ class _FlashcardWidgetState extends State<FlashcardWidget> {
             ),
           ),
         ),
-        const SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            ElevatedButton.icon(
-              icon: const Icon(Icons.arrow_back_rounded),
-              label: const Text('السابق'),
-              onPressed: _currentIndex > 0 ? () {
-                setState(() {
-                  _currentIndex = _currentIndex - 1;
-                });
-                _controller.moveTo(_currentIndex);
-              } : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _currentIndex > 0 
-                    ? Theme.of(context).colorScheme.secondary 
-                    : Colors.grey.shade300,
-                foregroundColor: _currentIndex > 0 
-                    ? Colors.white 
-                    : Colors.grey.shade600,
+        // Navigation buttons - moved to center and more prominent
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Previous button
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: _currentIndex > 0
+                        ? LinearGradient(
+                            colors: [
+                              Theme.of(context).colorScheme.secondary,
+                              Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+                            ],
+                          )
+                        : null,
+                    color: _currentIndex == 0 ? Colors.grey.shade300 : null,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: _currentIndex > 0
+                        ? [
+                            BoxShadow(
+                              color: Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.arrow_back_rounded, size: 24),
+                    label: Text(
+                      'السابق',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onPressed: _currentIndex > 0 ? () => _navigateToCard(_currentIndex - 1) : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                      foregroundColor: _currentIndex > 0 ? Colors.white : Colors.grey.shade600,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-             ElevatedButton.icon(
-              icon: const Icon(Icons.arrow_forward_rounded),
-              label: const Text('التالي'),
-              onPressed: _currentIndex < widget.flashcards.length - 1 ? () {
-                setState(() {
-                  _currentIndex = _currentIndex + 1;
-                });
-                _controller.moveTo(_currentIndex);
-              } : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _currentIndex < widget.flashcards.length - 1 
-                    ? Theme.of(context).colorScheme.primary 
-                    : Colors.grey.shade300,
-                foregroundColor: _currentIndex < widget.flashcards.length - 1 
-                    ? Colors.white 
-                    : Colors.grey.shade600,
+              
+              const SizedBox(width: 20),
+              
+              // Next button
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: _currentIndex < widget.flashcards.length - 1
+                        ? LinearGradient(
+                            colors: [
+                              Theme.of(context).colorScheme.primary,
+                              Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                            ],
+                          )
+                        : null,
+                    color: _currentIndex == widget.flashcards.length - 1 ? Colors.grey.shade300 : null,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: _currentIndex < widget.flashcards.length - 1
+                        ? [
+                            BoxShadow(
+                              color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.arrow_forward_rounded, size: 24),
+                    label: Text(
+                      'التالي',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onPressed: _currentIndex < widget.flashcards.length - 1 
+                        ? () => _navigateToCard(_currentIndex + 1) 
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                      foregroundColor: _currentIndex < widget.flashcards.length - 1 
+                          ? Colors.white 
+                          : Colors.grey.shade600,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ],
-        )
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -334,6 +411,11 @@ class _MixedTextWidget extends StatelessWidget {
   }
 
   Widget _buildMixedText(BuildContext context) {
+    // Check if text contains numbered lists and format them specially
+    if (text.contains(RegExp(r'^\d+[-\.)\s]', multiLine: true))) {
+      return _buildFormattedList(context);
+    }
+    
     final spans = <TextSpan>[];
     final words = text.split(' ');
 
@@ -370,6 +452,78 @@ class _MixedTextWidget extends StatelessWidget {
       textAlign: TextAlign.center,
       textDirection: TextDirection.rtl,
       text: TextSpan(children: spans),
+    );
+  }
+  
+  Widget _buildFormattedList(BuildContext context) {
+    final lines = text.split('\n');
+    return Column(
+      children: lines.map((line) {
+        if (line.trim().isEmpty) return const SizedBox(height: 8);
+        
+        // Check if it's a numbered item
+        final numberedMatch = RegExp(r'^(\d+)[-\.)\s]+(.*)').firstMatch(line.trim());
+        if (numberedMatch != null) {
+          final number = numberedMatch.group(1)!;
+          final content = numberedMatch.group(2)!;
+          
+          return Container(
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceVariant,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    number,
+                    style: GoogleFonts.cairo(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    content,
+                    style: GoogleFonts.cairo(
+                      fontSize: style.fontSize,
+                      fontWeight: style.fontWeight,
+                      color: style.color,
+                      height: 1.5,
+                    ),
+                    textDirection: TextDirection.rtl,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        
+        // Regular text line
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Text(
+            line,
+            style: style,
+            textAlign: TextAlign.center,
+            textDirection: TextDirection.rtl,
+          ),
+        );
+      }).toList(),
     );
   }
 }

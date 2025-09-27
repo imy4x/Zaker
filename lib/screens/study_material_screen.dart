@@ -5,6 +5,7 @@ import 'package:zaker/providers/study_provider.dart';
 import 'package:zaker/models/study_session.dart';
 import 'package:zaker/screens/quiz_screen.dart';
 import 'package:zaker/widgets/flashcard_widget.dart';
+import 'package:zaker/widgets/enhanced_summary_widget.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 
@@ -82,25 +83,7 @@ class StudyMaterialScreen extends StatelessWidget {
           ),
           body: TabBarView(
             children: [
-              SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: MarkdownBody(
-                    data: session.summary,
-                    styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
-                      h1: theme.textTheme.displayLarge?.copyWith(fontSize: 26),
-                      h2: theme.textTheme.displayLarge?.copyWith(fontSize: 22),
-                      h3: theme.textTheme.displayLarge?.copyWith(fontSize: 18),
-                      p: theme.textTheme.bodyLarge,
-                      listBullet: theme.textTheme.bodyLarge,
-                      code: theme.textTheme.bodyMedium?.copyWith(
-                        fontFamily: 'monospace',
-                        backgroundColor: Colors.grey.shade200,
-                      )
-                    ),
-                  ),
-                ),
-              ),
+              EnhancedSummaryWidget(summary: session.summary),
 
               Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
