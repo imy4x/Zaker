@@ -3,22 +3,22 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Vibrant Modern Color Palette - حيوي وجذاب
-  static const Color primaryColor = Color(0xFF6C5CE7); // Vibrant Purple
-  static const Color primaryLight = Color(0xFF9C88FF); // Light Purple
-  static const Color primaryDark = Color(0xFF5A4FCF);
-  static const Color secondaryColor = Color(0xFF00D4AA); // Turquoise
-  static const Color accentColor = Color(0xFFFF6B6B); // Coral Red
-  static const Color accentSecondary = Color(0xFFFFDA79); // Golden Yellow
+  // Vibrant Modern Color Palette - حيوي وجذاب مع تحسين التباين
+  static const Color primaryColor = Color(0xFF5A4FCF); // Darker vibrant purple for better contrast
+  static const Color primaryLight = Color(0xFF7B6EE6); // Slightly darker light purple
+  static const Color primaryDark = Color(0xFF4338CA);
+  static const Color secondaryColor = Color(0xFF059669); // Darker turquoise for better contrast
+  static const Color accentColor = Color(0xFFDC2626); // Darker coral red
+  static const Color accentSecondary = Color(0xFFD97706); // Darker golden yellow
   static const Color backgroundColor = Color(0xFFF8F9FF); // Light lavender background
   static const Color surfaceColor = Color(0xFFFFFFFF); // Pure white
-  static const Color surfaceVariant = Color(0xFFF0F2FF); // Light purple surface
-  static const Color textColor = Color(0xFF2D3436); // Dark charcoal
-  static const Color subtitleColor = Color(0xFF636E72); // Warm gray
-  static const Color borderColor = Color(0xFFDDD6FE); // Light purple border
-  static const Color errorColor = Color(0xFFE17055);
-  static const Color warningColor = Color(0xFFFDAB3D);
-  static const Color successColor = Color(0xFF00B894);
+  static const Color surfaceVariant = Color(0xFFE5E7EB); // Better contrast surface variant
+  static const Color textColor = Color(0xFF1F2937); // Darker text for better contrast
+  static const Color subtitleColor = Color(0xFF4B5563); // Darker subtitle for better contrast
+  static const Color borderColor = Color(0xFFD1D5DB); // Better contrast border
+  static const Color errorColor = Color(0xFFDC2626);
+  static const Color warningColor = Color(0xFFD97706);
+  static const Color successColor = Color(0xFF059669);
   
   // Gradient colors for modern effects
   static const LinearGradient primaryGradient = LinearGradient(

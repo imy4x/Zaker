@@ -31,10 +31,11 @@ class SessionListItem extends StatelessWidget {
         intl.DateFormat('d MMMM yyyy', 'ar').format(session.createdAt);
 
     return Card(
-      elevation: 0,
+      elevation: 2,
+      shadowColor: Colors.black.withOpacity(0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.shade200)
+        side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3))
       ),
       child: InkWell(
         onTap: onTap,
@@ -52,8 +53,8 @@ class SessionListItem extends StatelessWidget {
                   style: theme.textTheme.bodyMedium
                       ?.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
                 ),
-                progressColor: theme.primaryColor,
-                backgroundColor: Colors.grey.shade200,
+                progressColor: theme.colorScheme.primary,
+                backgroundColor: theme.colorScheme.surfaceVariant,
                 circularStrokeCap: CircularStrokeCap.round,
               ),
               const SizedBox(width: 16),
@@ -72,7 +73,7 @@ class SessionListItem extends StatelessWidget {
                     Row(
                       children: [
                         Icon(Icons.calendar_today_outlined,
-                            size: 14, color: Colors.grey.shade600),
+                            size: 14, color: theme.colorScheme.onSurface.withOpacity(0.6)),
                         const SizedBox(width: 4),
                         Text(
                           formattedDate,

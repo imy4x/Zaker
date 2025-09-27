@@ -3,13 +3,67 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zaker/utils/responsive_utils.dart';
 
-class EnhancedSummaryWidget extends StatelessWidget {
-  final String summary;
+class EnhancedSummaryWidget extends StatefulWidget {
+  final String summaryAr;
+  final String summaryEn;
 
   const EnhancedSummaryWidget({
     super.key,
-    required this.summary,
+    required this.summaryAr,
+    required this.summaryEn,
   });
+
+  // Backward compatibility constructor
+  const EnhancedSummaryWidget.legacy({
+    super.key,
+    required String summary,
+  }) : summaryAr = summary,
+       summaryEn = summary;
+
+  @override
+  State<EnhancedSummaryWidget> createState() => _EnhancedSummaryWidgetState();
+}
+
+class _EnhancedSummaryWidgetState extends State<EnhancedSummaryWidget> with SingleTickerProviderStateMixin {
+  String _currentLanguage = 'ar';
+  late AnimationController _languageToggleController;
+  late Animation<double> _languageToggleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _languageToggleController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _languageToggleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _languageToggleController,
+      curve: Curves.easeInOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _languageToggleController.dispose();
+    super.dispose();
+  }
+
+  void _toggleLanguage() {
+    setState(() {
+      _currentLanguage = _currentLanguage == 'ar' ? 'en' : 'ar';
+    });
+    
+    if (_currentLanguage == 'en') {
+      _languageToggleController.forward();
+    } else {
+      _languageToggleController.reverse();
+    }
+  }
+
+  String get _currentSummary => _currentLanguage == 'en' ? widget.summaryEn : widget.summaryAr;
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +125,7 @@ class EnhancedSummaryWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'الملخص التعليمي',
+                        _currentLanguage == 'en' ? 'Study Summary' : 'الملخص التعليمي',
                         style: GoogleFonts.cairo(
                           fontSize: ResponsiveUtils.getResponsiveFontSize(context, 22),
                           fontWeight: FontWeight.bold,
@@ -80,7 +134,7 @@ class EnhancedSummaryWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'مُحسَّن للدراسة والمراجعة',
+                        _currentLanguage == 'en' ? 'Enhanced for studying and review' : 'مُحسَّن للدراسة والمراجعة',
                         style: GoogleFonts.cairo(
                           fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14),
                           color: Colors.white.withOpacity(0.9),
@@ -88,6 +142,48 @@ class EnhancedSummaryWidget extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+                // Language toggle button
+                AnimatedBuilder(
+                  animation: _languageToggleAnimation,
+                  builder: (context, child) {
+                    return GestureDetector(
+                      onTap: _toggleLanguage,
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Transform.rotate(
+                              angle: _languageToggleAnimation.value * 3.14159,
+                              child: Icon(
+                                Icons.translate_rounded,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _currentLanguage == 'ar' ? 'EN' : 'عر',
+                              style: GoogleFonts.cairo(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -97,10 +193,32 @@ class EnhancedSummaryWidget extends StatelessWidget {
           Expanded(
             child: Container(
               padding: ResponsiveUtils.getFlashcardPadding(context),
-              child: SingleChildScrollView(
-                child: _SummaryMarkdown(
-                  data: _formatSummary(summary),
-                  context: context,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 400),
+                switchInCurve: Curves.easeInOut,
+                switchOutCurve: Curves.easeInOut,
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.0, 0.3),
+                        end: Offset.zero,
+                      ).animate(CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeInOut,
+                      )),
+                      child: child,
+                    ),
+                  );
+                },
+                child: SingleChildScrollView(
+                  key: ValueKey(_currentLanguage),
+                  child: _SummaryMarkdown(
+                    data: _formatSummary(_currentSummary),
+                    context: context,
+                    languageCode: _currentLanguage,
+                  ),
                 ),
               ),
             ),
@@ -126,7 +244,9 @@ class EnhancedSummaryWidget extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'تذكر: راجع الملخص عدة مرات لضمان الفهم الكامل',
+                    _currentLanguage == 'en' 
+                        ? 'Remember: Review the summary several times to ensure complete understanding'
+                        : 'تذكر: راجع الملخص عدة مرات لضمان الفهم الكامل',
                     style: GoogleFonts.cairo(
                       fontSize: 13,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -182,31 +302,36 @@ class EnhancedSummaryWidget extends StatelessWidget {
 class _SummaryMarkdown extends StatelessWidget {
   final String data;
   final BuildContext context;
+  final String languageCode;
 
   const _SummaryMarkdown({
     required this.data,
     required this.context,
+    required this.languageCode,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isArabic = languageCode == 'ar';
+    final fontFamily = isArabic ? GoogleFonts.cairo : GoogleFonts.inter;
+    
     return MarkdownBody(
       data: data,
       styleSheet: MarkdownStyleSheet(
         // Headers
-        h1: GoogleFonts.cairo(
+        h1: fontFamily(
           fontSize: ResponsiveUtils.getResponsiveFontSize(context, 24),
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.primary,
           height: 1.4,
         ),
-        h2: GoogleFonts.cairo(
+        h2: fontFamily(
           fontSize: ResponsiveUtils.getResponsiveFontSize(context, 20),
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.primary,
           height: 1.4,
         ),
-        h3: GoogleFonts.cairo(
+        h3: fontFamily(
           fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18),
           fontWeight: FontWeight.w600,
           color: Theme.of(context).colorScheme.secondary,
@@ -214,26 +339,26 @@ class _SummaryMarkdown extends StatelessWidget {
         ),
         
         // Body text
-        p: GoogleFonts.cairo(
+        p: fontFamily(
           fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16),
           color: Theme.of(context).colorScheme.onSurface,
           height: 1.8,
         ),
         
         // Lists
-        listBullet: GoogleFonts.cairo(
+        listBullet: fontFamily(
           fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16),
           color: Theme.of(context).colorScheme.onSurface,
           height: 1.7,
         ),
         
         // Emphasis
-        strong: GoogleFonts.cairo(
+        strong: fontFamily(
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.primary,
         ),
         
-        em: GoogleFonts.cairo(
+        em: fontFamily(
           fontStyle: FontStyle.italic,
           color: Theme.of(context).colorScheme.secondary,
         ),

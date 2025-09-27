@@ -83,7 +83,15 @@ class StudyMaterialScreen extends StatelessWidget {
           ),
           body: TabBarView(
             children: [
-              EnhancedSummaryWidget(summary: session.summary),
+              // Handle both new bilingual format and legacy format
+              session.summaryEn.isNotEmpty 
+                ? EnhancedSummaryWidget(
+                    summaryAr: session.summaryAr, 
+                    summaryEn: session.summaryEn,
+                  )
+                : EnhancedSummaryWidget.legacy(
+                    summary: session.summary,
+                  ),
 
               Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
