@@ -138,14 +138,19 @@ class StudyProvider extends ChangeNotifier {
 
       final results = await Future.wait([summaryFuture, flashcardsFuture, quizFuture]);
       
+      final summaryData = results[0] as Map<String, String>;
+      final flashcards = results[1] as List<Flashcard>;
+      final quizQuestions = results[2] as List<QuizQuestion>;
+      
       final newSession = StudySession(
         id: _uuid.v4(),
         title: title,
         createdAt: DateTime.now(),
         languageCode: targetLanguage == 'العربية' ? 'ar' : 'en',
-        summary: results[0] as String,
-        flashcards: results[1] as List<Flashcard>,
-        quizQuestions: results[2] as List<QuizQuestion>,
+        summaryAr: summaryData['ar'] ?? '',
+        summaryEn: summaryData['en'] ?? '',
+        flashcards: flashcards,
+        quizQuestions: quizQuestions,
       );
       
       _sessions.insert(0, newSession);

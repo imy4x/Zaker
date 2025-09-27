@@ -69,17 +69,17 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   Color _getOptionColor(int index) {
-    if (!_answered) return Colors.white;
-    if (index == widget.questions[_currentQuestionIndex].correctAnswerIndex) return Colors.green.shade100;
-    if (index == _selectedAnswerIndex) return Colors.red.shade100;
-    return Colors.white;
+    if (!_answered) return Theme.of(context).colorScheme.surface;
+    if (index == widget.questions[_currentQuestionIndex].correctAnswerIndex) return Colors.green.shade50;
+    if (index == _selectedAnswerIndex) return Colors.red.shade50;
+    return Theme.of(context).colorScheme.surface;
   }
 
    Border? _getOptionBorder(int index) {
-    if (!_answered) return Border.all(color: Colors.grey.shade300);
-    if (index == widget.questions[_currentQuestionIndex].correctAnswerIndex) return Border.all(color: Colors.green, width: 2);
-    if (index == _selectedAnswerIndex) return Border.all(color: Colors.red, width: 2);
-    return Border.all(color: Colors.grey.shade300);
+    if (!_answered) return Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.3));
+    if (index == widget.questions[_currentQuestionIndex].correctAnswerIndex) return Border.all(color: Colors.green.shade600, width: 2);
+    if (index == _selectedAnswerIndex) return Border.all(color: Colors.red.shade600, width: 2);
+    return Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.3));
   }
 
   @override

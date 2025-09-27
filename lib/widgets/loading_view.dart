@@ -45,8 +45,8 @@ class LoadingView extends StatelessWidget {
                       percent: provider.progressValue,
                       lineHeight: 12.0,
                       barRadius: const Radius.circular(6),
-                      backgroundColor: Colors.grey.shade300,
-                      progressColor: theme.primaryColor,
+                      backgroundColor: theme.colorScheme.surfaceVariant,
+                      progressColor: theme.colorScheme.primary,
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -57,9 +57,9 @@ class LoadingView extends StatelessWidget {
                     Chip(
                       label: Text(
                         'يتم استخدام المفتاح رقم ${provider.currentApiKeyIndex + 1}',
-                        style: theme.textTheme.bodyMedium?.copyWith(color: theme.primaryColor),
+                        style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary),
                       ),
-                      backgroundColor: theme.primaryColor.withOpacity(0.1),
+                      backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
                       side: BorderSide.none,
                     ),
                   ],

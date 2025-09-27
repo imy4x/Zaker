@@ -78,7 +78,7 @@ class GeminiService {
     }
   }
 
-  Future<String> generateSummary(String text, String targetLanguage, AnalysisDepth depth, Function(int) onKeyChanged, {String? customNotes}) async {
+  Future<Map<String, String>> generateSummary(String text, String targetLanguage, AnalysisDepth depth, Function(int) onKeyChanged, {String? customNotes}) async {
     String prompt;
     final customNotesSection = customNotes != null && customNotes.isNotEmpty
         ? '\n          6.  **Special Instructions**: Pay special attention to the following user requirements: $customNotes'
@@ -88,37 +88,37 @@ class GeminiService {
       case AnalysisDepth.deep:
         prompt = '''
           Act as a university professor and an expert in simplifying science. Your goal is to explain the following material to a student in great depth and in an easy-to-read format.
-          **Task**: Create an analytical, deep, and comprehensive summary.
+          **Task**: Create an analytical, deep, and comprehensive summary in both Arabic and English.
           **Strict Instructions**:
           1.  **Deep Explanation**: Don't just provide definitions. Explain the "why" and "how" of each concept.
           2.  **Examples and Analogies**: For each main concept, provide a clear real-world example and an innovative analogy to solidify understanding.
           3.  **Clear Formatting**: Use Markdown effectively. Utilize headings (`## Main Title`, `### Subtitle`), bullet points (`- point`), and **bold text** for key terms to make the summary easy to read and study.
-          4.  **Language**: The final summary must be exclusively in **$targetLanguage**.
-          5.  **Output Format**: The entire output MUST be a single JSON object with one key "summary" containing the markdown string. Example: {"summary": "## Title\\n- Point 1..."}$customNotesSection
+          4.  **Bilingual Output**: Create the summary in both Arabic and English, with the same content quality for both languages.
+          5.  **Output Format**: The entire output MUST be a single JSON object with two keys: {"ar": "Arabic summary here...", "en": "English summary here..."}$customNotesSection
           **Text to summarize**: """$text"""
         ''';
         break;
       case AnalysisDepth.medium:
          prompt = '''
-          **Task**: Create a balanced and well-formatted summary of the following text.
+          **Task**: Create a balanced and well-formatted summary of the following text in both Arabic and English.
           **Instructions**:
           1.  Focus on explaining the core concepts clearly.
           2.  Use a simple example where necessary to clarify complex points.
           3.  Use a clear structure with headings (`##`), bullet points, and **bold text** for terms.
-          4.  **Language**: The final summary must be exclusively in **$targetLanguage**.
-          5.  **Output Format**: The entire output MUST be a single JSON object with one key "summary" containing the markdown string.$customNotesSection
+          4.  **Bilingual Output**: Create the summary in both Arabic and English, with the same content quality for both languages.
+          5.  **Output Format**: The entire output MUST be a single JSON object with two keys: {"ar": "Arabic summary here...", "en": "English summary here..."}$customNotesSection
           **Text to summarize**: """$text"""
         ''';
         break;
       case AnalysisDepth.light:
         prompt = '''
-          **Task**: Create a quick and concise summary of the following text in the form of key points.
+          **Task**: Create a quick and concise summary of the following text in the form of key points in both Arabic and English.
           **Instructions**:
           1.  Extract only the essential points and concepts.
           2.  Avoid long explanations or examples.
           3.  Use a structured bulleted list (`-`). Make key terms **bold**.
-          4.  **Language**: The final summary must be exclusively in **$targetLanguage**.
-          5.  **Output Format**: The entire output MUST be a single JSON object with one key "summary" containing the markdown string.$customNotesSection
+          4.  **Bilingual Output**: Create the summary in both Arabic and English, with the same content quality for both languages.
+          5.  **Output Format**: The entire output MUST be a single JSON object with two keys: {"ar": "Arabic summary here...", "en": "English summary here..."}$customNotesSection
           **Text to summarize**: """$text"""
         ''';
         break;
@@ -126,7 +126,10 @@ class GeminiService {
      try {
       final response = await _generateContentWithRetry([Content.text(prompt)], ModelType.pro, onKeyChanged);
       final jsonResponse = jsonDecode(response.text!);
-      return jsonResponse['summary'] ?? 'The AI could not generate a summary.';
+      return {
+        'ar': jsonResponse['ar'] ?? 'لم يتمكن الذكاء الاصطناعي من إنشاء ملخص.',
+        'en': jsonResponse['en'] ?? 'The AI could not generate a summary.',
+      };
     } catch (e) {
       rethrow;
     }
@@ -192,7 +195,7 @@ class GeminiService {
         
     final prompt = '''
       You are an expert exam creator. Your task is to analyze the provided educational text and generate flashcards based on questions that are highly likely to appear in an exam.
-      **Task**: Create as many relevant flashcards as possible (up to 50).
+      **Task**: Create as many relevant flashcards as possible (up to 50) in both Arabic and English.
       **Strict Instructions**:
       1.  **Focus on Exam-Style Questions**: Prioritize creating questions that start with common exam keywords. Specifically look for opportunities to create questions like:
           - "Define..." (عرف...)
@@ -200,8 +203,8 @@ class GeminiService {
           - "Explain why..." (علل...)
           - "Explain briefly..." (اشرح باختصار...)
       2.  **Direct and Clear**: The question must be direct and unambiguous. The answer must be accurate and concise, directly addressing the question.
-      3.  **Language**: The flashcards must be exclusively in **$targetLanguage**.
-      4.  **Format**: Return the result ONLY as a valid JSON object with one key "flashcards" which contains a JSON array in this format: `{"flashcards": [{"question":"...","answer":"..."},...]}`$customNotesSection
+      3.  **Bilingual Output**: Create each flashcard in both Arabic and English with the same content quality.
+      4.  **Format**: Return the result ONLY as a valid JSON object with one key "flashcards" which contains a JSON array in this format: `{"flashcards": [{"questionAr":"...","answerAr":"...","questionEn":"...","answerEn":"..."},...]}`$customNotesSection
       **Source Text**:
       """$text"""
     ''';
