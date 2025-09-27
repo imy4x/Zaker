@@ -8,6 +8,7 @@ import 'package:zaker/models/study_session.dart';
 import 'package:zaker/providers/study_provider.dart';
 import 'package:zaker/screens/study_material_screen.dart';
 import 'package:zaker/utils/dialogs.dart';
+import 'package:zaker/utils/responsive_utils.dart';
 import 'package:zaker/widgets/loading_view.dart';
 import 'package:zaker/widgets/session_list_item.dart';
 
@@ -55,52 +56,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
   
   void _showCreateOrRenameListDialog({StudyList? existingList}) {
-    final isEditing = existingList != null;
-    final controller = TextEditingController(text: isEditing ? existingList.name : '');
-
-    showDialog(context: context, builder: (context) => AlertDialog(
-      title: Text(isEditing ? 'إعادة تسمية القائمة' : 'إنشاء قائمة جديدة'),
-      content: TextField(
-        controller: controller,
-        decoration: const InputDecoration(labelText: 'اسم القائمة'),
-        autofocus: true,
-      ),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
-        ElevatedButton(onPressed: () {
-          if (controller.text.isNotEmpty) {
-            final provider = context.read<StudyProvider>();
-            if (isEditing) {
-              provider.renameList(existingList.id, controller.text);
-            } else {
-              provider.createList(controller.text);
-            }
-            Navigator.pop(context);
-          }
-        }, child: Text(isEditing ? 'حفظ' : 'إنشاء')),
-      ],
-    )).whenComplete(() => controller.dispose());
+    showDialog(
+      context: context,
+      builder: (context) => _CreateListDialog(existingList: existingList),
+    );
   }
 
   void _showRenameSessionDialog(StudySession session) {
-    final controller = TextEditingController(text: session.title);
-    showDialog(context: context, builder: (context) => AlertDialog(
-      title: const Text('إعادة تسمية الجلسة'),
-      content: TextField(
-        controller: controller,
-        decoration: const InputDecoration(labelText: 'عنوان الجلسة'),
-        autofocus: true,
-      ),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
-        ElevatedButton(onPressed: () {
-          if (controller.text.isNotEmpty) {
-            context.read<StudyProvider>().renameSession(session.id, controller.text);
-            Navigator.pop(context);
-          }
-        }, child: const Text('حفظ')),
-      ],
-    )).whenComplete(() => controller.dispose());
+    showDialog(
+      context: context,
+      builder: (context) => _RenameSessionDialog(session: session),
+    );
   }
 
 
@@ -128,7 +94,12 @@ class _HomeScreenState extends State<HomeScreen> {
           if (lists.isEmpty && sessions.isEmpty) return _buildEmptyState();
 
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+            padding: EdgeInsets.fromLTRB(
+              ResponsiveUtils.getResponsivePadding(context),
+              ResponsiveUtils.getResponsiveSpacing(context),
+              ResponsiveUtils.getResponsivePadding(context),
+              96,
+            ),
             children: [
               ...lists.map((list) {
                 final listSessions = sessions.where((s) => s.listId == list.id).toList();
@@ -252,6 +223,214 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 8),
           Text('اضغط على زر الإضافة لبدء المذاكرة', style: Theme.of(context).textTheme.bodyMedium),
         ],
+      ),
+    );
+  }
+}
+
+class _RenameSessionDialog extends StatefulWidget {
+  final StudySession session;
+  const _RenameSessionDialog({required this.session});
+
+  @override
+  State<_RenameSessionDialog> createState() => _RenameSessionDialogState();
+}
+
+class _RenameSessionDialogState extends State<_RenameSessionDialog> {
+  late final TextEditingController _controller;
+  
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.session.title);
+  }
+  
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('إعادة تسمية الجلسة'),
+      content: TextField(
+        controller: _controller,
+        decoration: const InputDecoration(labelText: 'عنوان الجلسة'),
+        autofocus: true,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('إلغاء'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (_controller.text.isNotEmpty) {
+              context.read<StudyProvider>().renameSession(widget.session.id, _controller.text);
+              Navigator.pop(context);
+            }
+          },
+          child: const Text('حفظ'),
+        ),
+      ],
+    );
+  }
+}
+
+class _CreateListDialog extends StatefulWidget {
+  final StudyList? existingList;
+  const _CreateListDialog({this.existingList});
+
+  @override
+  State<_CreateListDialog> createState() => _CreateListDialogState();
+}
+
+class _CreateListDialogState extends State<_CreateListDialog> {
+  late final TextEditingController _controller;
+  
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(
+      text: widget.existingList?.name ?? '',
+    );
+  }
+  
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    final isEditing = widget.existingList != null;
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: Colors.white,
+      elevation: 0,
+      contentPadding: EdgeInsets.zero,
+      content: Container(
+        width: ResponsiveUtils.getMaxDialogWidth(context),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFF0F2FF), Colors.white],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isEditing ? Icons.edit_rounded : Icons.create_new_folder_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 48,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                isEditing ? 'إعادة تسمية القائمة' : 'إنشاء قائمة جديدة',
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              TextField(
+                controller: _controller,
+                decoration: InputDecoration(
+                  labelText: 'اسم القائمة',
+                  prefixIcon: Icon(Icons.folder_outlined, color: Theme.of(context).colorScheme.primary),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+                  ),
+                ),
+                autofocus: true,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) {
+                  if (_controller.text.isNotEmpty) {
+                    final provider = context.read<StudyProvider>();
+                    if (isEditing) {
+                      provider.renameList(widget.existingList!.id, _controller.text);
+                    } else {
+                      provider.createList(_controller.text);
+                    }
+                    Navigator.pop(context);
+                  }
+                },
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF636E72),
+                        side: const BorderSide(color: Color(0xFF636E72)),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: Text(
+                        'إلغاء',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: const Color(0xFF636E72),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_controller.text.isNotEmpty) {
+                          final provider = context.read<StudyProvider>();
+                          if (isEditing) {
+                            provider.renameList(widget.existingList!.id, _controller.text);
+                          } else {
+                            provider.createList(_controller.text);
+                          }
+                          Navigator.pop(context);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: Text(
+                        isEditing ? 'حفظ' : 'إنشاء',
+                        style: Theme.of(context).textTheme.labelLarge,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

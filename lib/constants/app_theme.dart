@@ -3,19 +3,41 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Modern Technical Color Palette
-  static const Color primaryColor = Color(0xFF1B73E8); // Google Blue
-  static const Color primaryDark = Color(0xFF1557B0);
-  static const Color secondaryColor = Color(0xFF6C5CE7); // Purple
-  static const Color accentColor = Color(0xFF00D084); // Emerald Green
-  static const Color backgroundColor = Color(0xFFFBFBFD); // Ultra light background
+  // Vibrant Modern Color Palette - حيوي وجذاب
+  static const Color primaryColor = Color(0xFF6C5CE7); // Vibrant Purple
+  static const Color primaryLight = Color(0xFF9C88FF); // Light Purple
+  static const Color primaryDark = Color(0xFF5A4FCF);
+  static const Color secondaryColor = Color(0xFF00D4AA); // Turquoise
+  static const Color accentColor = Color(0xFFFF6B6B); // Coral Red
+  static const Color accentSecondary = Color(0xFFFFDA79); // Golden Yellow
+  static const Color backgroundColor = Color(0xFFF8F9FF); // Light lavender background
   static const Color surfaceColor = Color(0xFFFFFFFF); // Pure white
-  static const Color textColor = Color(0xFF1A1D29); // Dark text
-  static const Color subtitleColor = Color(0xFF6B7280); // Modern gray
-  static const Color borderColor = Color(0xFFE5E7EB); // Light border
-  static const Color errorColor = Color(0xFFEF4444);
-  static const Color warningColor = Color(0xFFF59E0B);
-  static const Color successColor = Color(0xFF10B981);
+  static const Color surfaceVariant = Color(0xFFF0F2FF); // Light purple surface
+  static const Color textColor = Color(0xFF2D3436); // Dark charcoal
+  static const Color subtitleColor = Color(0xFF636E72); // Warm gray
+  static const Color borderColor = Color(0xFFDDD6FE); // Light purple border
+  static const Color errorColor = Color(0xFFE17055);
+  static const Color warningColor = Color(0xFFFDAB3D);
+  static const Color successColor = Color(0xFF00B894);
+  
+  // Gradient colors for modern effects
+  static const LinearGradient primaryGradient = LinearGradient(
+    colors: [primaryColor, primaryLight],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+  
+  static const LinearGradient secondaryGradient = LinearGradient(
+    colors: [secondaryColor, Color(0xFF74B9FF)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+  
+  static const LinearGradient accentGradient = LinearGradient(
+    colors: [accentColor, accentSecondary],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
@@ -29,7 +51,7 @@ class AppTheme {
       error: errorColor,
     ),
     scaffoldBackgroundColor: backgroundColor,
-    fontFamily: GoogleFonts.inter().fontFamily, // Modern Inter font
+    fontFamily: GoogleFonts.cairo().fontFamily, // Cairo font for better Arabic support
     
     appBarTheme: AppBarTheme(
       backgroundColor: surfaceColor,
@@ -37,11 +59,10 @@ class AppTheme {
       centerTitle: true,
       shadowColor: Colors.black.withOpacity(0.05),
       surfaceTintColor: surfaceColor,
-      titleTextStyle: GoogleFonts.inter(
+      titleTextStyle: GoogleFonts.cairo(
         color: textColor,
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -0.5,
+        fontSize: 22,
+        fontWeight: FontWeight.bold,
       ),
       iconTheme: IconThemeData(color: textColor, size: 22),
       systemOverlayStyle: const SystemUiOverlayStyle(
@@ -51,43 +72,40 @@ class AppTheme {
     ),
 
     textTheme: TextTheme(
-      displayLarge: GoogleFonts.inter(
-        fontWeight: FontWeight.w700,
+      displayLarge: GoogleFonts.cairo(
+        fontWeight: FontWeight.bold,
         fontSize: 32,
         color: textColor,
-        letterSpacing: -1.2,
-        height: 1.2,
-      ),
-      displayMedium: GoogleFonts.inter(
-        fontWeight: FontWeight.w600,
-        fontSize: 24,
-        color: textColor,
-        letterSpacing: -0.8,
         height: 1.3,
       ),
-      headlineLarge: GoogleFonts.inter(
-        fontWeight: FontWeight.w600,
+      displayMedium: GoogleFonts.cairo(
+        fontWeight: FontWeight.bold,
+        fontSize: 24,
+        color: textColor,
+        height: 1.4,
+      ),
+      headlineLarge: GoogleFonts.cairo(
+        fontWeight: FontWeight.bold,
         fontSize: 20,
         color: textColor,
-        letterSpacing: -0.5,
+        height: 1.4,
       ),
-      bodyLarge: GoogleFonts.inter(
-        fontSize: 16,
+      bodyLarge: GoogleFonts.cairo(
+        fontSize: 17,
         color: textColor,
-        height: 1.6,
-        letterSpacing: 0.1,
+        height: 1.7,
+        fontWeight: FontWeight.w500,
       ),
-      bodyMedium: GoogleFonts.inter(
-        fontSize: 14,
+      bodyMedium: GoogleFonts.cairo(
+        fontSize: 15,
         color: subtitleColor,
-        height: 1.5,
-        letterSpacing: 0.1,
+        height: 1.6,
+        fontWeight: FontWeight.w400,
       ),
-      labelLarge: GoogleFonts.inter(
+      labelLarge: GoogleFonts.cairo(
         fontSize: 16,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.bold,
         color: Colors.white,
-        letterSpacing: 0.2,
       ),
     ),
 

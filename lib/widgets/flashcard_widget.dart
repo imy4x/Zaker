@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:zaker/models/flashcard.dart';
+import 'package:zaker/utils/responsive_utils.dart';
 
 class FlashcardWidget extends StatefulWidget {
   final List<Flashcard> flashcards;
@@ -25,8 +27,11 @@ class _FlashcardWidgetState extends State<FlashcardWidget> {
       children: [
         // Card counter
         Container(
-          margin: const EdgeInsets.only(bottom: 20),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          margin: EdgeInsets.only(bottom: ResponsiveUtils.getResponsiveSpacing(context) * 2),
+          padding: EdgeInsets.symmetric(
+            horizontal: ResponsiveUtils.getResponsivePadding(context),
+            vertical: 12,
+          ),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -80,20 +85,25 @@ class _FlashcardWidgetState extends State<FlashcardWidget> {
           ),
         ),
         Expanded(
-          child: CardSwiper(
-            controller: _controller,
-            cardsCount: widget.flashcards.length,
-            cardBuilder: (context, index, h, v) => _FlashcardContent(
-              key: ValueKey(widget.flashcards[index].question),
-              flashcard: widget.flashcards[index]
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: ResponsiveUtils.getFlashcardHeight(context),
             ),
-            allowedSwipeDirection: const AllowedSwipeDirection.symmetric(horizontal: true),
-            onSwipe: (previousIndex, currentIndex, direction) {
-              setState(() {
-                _currentIndex = currentIndex ?? 0;
-              });
-              return true;
-            },
+            child: CardSwiper(
+              controller: _controller,
+              cardsCount: widget.flashcards.length,
+              cardBuilder: (context, index, h, v) => _FlashcardContent(
+                key: ValueKey(widget.flashcards[index].question),
+                flashcard: widget.flashcards[index]
+              ),
+              allowedSwipeDirection: const AllowedSwipeDirection.none(), // Disable manual swiping
+              onSwipe: (previousIndex, currentIndex, direction) {
+                setState(() {
+                  _currentIndex = currentIndex ?? 0;
+                });
+                return true;
+              },
+            ),
           ),
         ),
         const SizedBox(height: 20),
@@ -104,25 +114,37 @@ class _FlashcardWidgetState extends State<FlashcardWidget> {
               icon: const Icon(Icons.arrow_back_rounded),
               label: const Text('السابق'),
               onPressed: _currentIndex > 0 ? () {
-                _controller.swipe(CardSwiperDirection.left);
                 setState(() {
-                  _currentIndex = (_currentIndex - 1).clamp(0, widget.flashcards.length - 1);
+                  _currentIndex = _currentIndex - 1;
                 });
+                _controller.moveTo(_currentIndex);
               } : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey.shade200,
-                foregroundColor: Colors.black,
+                backgroundColor: _currentIndex > 0 
+                    ? Theme.of(context).colorScheme.secondary 
+                    : Colors.grey.shade300,
+                foregroundColor: _currentIndex > 0 
+                    ? Colors.white 
+                    : Colors.grey.shade600,
               ),
             ),
              ElevatedButton.icon(
               icon: const Icon(Icons.arrow_forward_rounded),
               label: const Text('التالي'),
               onPressed: _currentIndex < widget.flashcards.length - 1 ? () {
-                _controller.swipe(CardSwiperDirection.right);
                 setState(() {
-                  _currentIndex = (_currentIndex + 1).clamp(0, widget.flashcards.length - 1);
+                  _currentIndex = _currentIndex + 1;
                 });
+                _controller.moveTo(_currentIndex);
               } : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _currentIndex < widget.flashcards.length - 1 
+                    ? Theme.of(context).colorScheme.primary 
+                    : Colors.grey.shade300,
+                foregroundColor: _currentIndex < widget.flashcards.length - 1 
+                    ? Colors.white 
+                    : Colors.grey.shade600,
+              ),
             ),
           ],
         )
@@ -249,14 +271,13 @@ class _FlashcardContentState extends State<_FlashcardContent> with SingleTickerP
             const Spacer(),
             Center(
               child: SingleChildScrollView(
-                child: Text(
-                  text,
-                  textAlign: TextAlign.center,
+                child: _MixedTextWidget(
+                  text: text,
                   style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                     fontSize: 20,
                     height: 1.4,
                     fontWeight: FontWeight.w500,
-                  ),
+                  ) ?? const TextStyle(),
                 ),
               ),
             ),
@@ -278,6 +299,77 @@ class _FlashcardContentState extends State<_FlashcardContent> with SingleTickerP
           ],
         ),
       ),
+    );
+  }
+}
+
+// Widget to handle mixed Arabic/English text properly
+class _MixedTextWidget extends StatelessWidget {
+  final String text;
+  final TextStyle style;
+
+  const _MixedTextWidget({
+    required this.text,
+    required this.style,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Check if text contains both Arabic and English
+    final hasArabic = text.contains(RegExp(r'[\u0600-\u06FF]'));
+    final hasEnglish = text.contains(RegExp(r'[a-zA-Z]'));
+
+    if (hasArabic && hasEnglish) {
+      // Mixed text - use RichText with different fonts
+      return _buildMixedText(context);
+    } else {
+      // Single language text
+      return Text(
+        text,
+        textAlign: TextAlign.center,
+        style: style,
+        textDirection: hasArabic ? TextDirection.rtl : TextDirection.ltr,
+      );
+    }
+  }
+
+  Widget _buildMixedText(BuildContext context) {
+    final spans = <TextSpan>[];
+    final words = text.split(' ');
+
+    for (int i = 0; i < words.length; i++) {
+      final word = words[i];
+      final isArabic = word.contains(RegExp(r'[\u0600-\u06FF]'));
+      
+      spans.add(
+        TextSpan(
+          text: word,
+          style: isArabic
+              ? GoogleFonts.cairo(  // Arabic font
+                  fontSize: style.fontSize,
+                  fontWeight: style.fontWeight,
+                  color: style.color,
+                  height: 1.4,
+                )
+              : GoogleFonts.inter(  // English font
+                  fontSize: style.fontSize,
+                  fontWeight: style.fontWeight,
+                  color: style.color,
+                  height: 1.2,
+                ),
+        ),
+      );
+      
+      // Add space between words except for the last word
+      if (i < words.length - 1) {
+        spans.add(const TextSpan(text: ' '));
+      }
+    }
+
+    return RichText(
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.rtl,
+      text: TextSpan(children: spans),
     );
   }
 }
