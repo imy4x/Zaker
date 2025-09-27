@@ -28,13 +28,15 @@ dependencies:
   lottie: ^3.1.2 # لعرض الأنيميشن
   path_provider: ^2.1.3 # للوصول لمسارات الملفات
   pdfx: ^2.6.0 # مكتبة جديدة وقوية لاستخراج النصوص من PDF
+  uuid: ^4.4.0 # لإنشاء معرفات فريدة
+  google_fonts: ^6.2.1 # خطوط جوجل
+  intl: ^0.20.2 # لتنسيق التواريخ
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.1
   flutter_launcher_icons: ^0.13.1
-  google_fonts:
 
 flutter:
   uses-material-design: true

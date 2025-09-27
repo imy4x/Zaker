@@ -92,9 +92,19 @@ class GeminiService {
           **Strict Instructions**:
           1.  **Deep Explanation**: Don't just provide definitions. Explain the "why" and "how" of each concept.
           2.  **Examples and Analogies**: For each main concept, provide a clear real-world example and an innovative analogy to solidify understanding.
-          3.  **Clear Formatting**: Use Markdown effectively. Utilize headings (`## Main Title`, `### Subtitle`), bullet points (`- point`), and **bold text** for key terms to make the summary easy to read and study.
-          4.  **Bilingual Output**: Create the summary in both Arabic and English, with the same content quality for both languages.
-          5.  **Output Format**: The entire output MUST be a single JSON object with two keys: {"ar": "Arabic summary here...", "en": "English summary here..."}$customNotesSection
+          3.  **Perfect Formatting**: Follow this EXACT structure for maximum readability:
+              - Start with a brief introduction (2-3 lines)
+              - Use `## 📚 Main Topic` for major sections
+              - Use `### ✨ Subtopic` for subsections  
+              - Use `#### 🔍 Detail` for detailed points
+              - Use `**Key Term**:` for important definitions
+              - Use numbered lists `1. Point` for sequential information
+              - Use bullet points `• Point` for related items
+              - Add `---` between major sections for visual separation
+              - End with a `## 📝 Key Takeaways` section with 3-5 main points
+          4.  **Enhanced Structure**: Each section should be well-spaced and clearly defined with appropriate icons
+          5.  **Bilingual Output**: Create the summary in both Arabic and English, with the same content quality for both languages.
+          6.  **Output Format**: The entire output MUST be a single JSON object with two keys: {"ar": "Arabic summary here...", "en": "English summary here..."}$customNotesSection
           **Text to summarize**: """$text"""
         ''';
         break;
@@ -104,7 +114,14 @@ class GeminiService {
           **Instructions**:
           1.  Focus on explaining the core concepts clearly.
           2.  Use a simple example where necessary to clarify complex points.
-          3.  Use a clear structure with headings (`##`), bullet points, and **bold text** for terms.
+          3.  **Clear Formatting Structure**:
+              - Use `## 📖 Main Topic` for major sections
+              - Use `### 💡 Subtopic` for subsections
+              - Use `**Key Term**:` for important definitions
+              - Use numbered lists for sequential points
+              - Use bullet points `•` for related items
+              - Add proper spacing between sections
+              - End with `## ⭐ Summary` with main points
           4.  **Bilingual Output**: Create the summary in both Arabic and English, with the same content quality for both languages.
           5.  **Output Format**: The entire output MUST be a single JSON object with two keys: {"ar": "Arabic summary here...", "en": "English summary here..."}$customNotesSection
           **Text to summarize**: """$text"""
@@ -116,7 +133,12 @@ class GeminiService {
           **Instructions**:
           1.  Extract only the essential points and concepts.
           2.  Avoid long explanations or examples.
-          3.  Use a structured bulleted list (`-`). Make key terms **bold**.
+          3.  **Quick Format Structure**:
+              - Use `## 📝 Key Points` as main heading
+              - Use `### 🔴 Topic` for each main area
+              - Use bullet points `• **Key Term**: Brief explanation`
+              - Keep each point to 1-2 lines maximum
+              - End with `## ⚙️ Quick Review` with 3 most important takeaways
           4.  **Bilingual Output**: Create the summary in both Arabic and English, with the same content quality for both languages.
           5.  **Output Format**: The entire output MUST be a single JSON object with two keys: {"ar": "Arabic summary here...", "en": "English summary here..."}$customNotesSection
           **Text to summarize**: """$text"""

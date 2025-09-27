@@ -38,7 +38,11 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with TickerProviderSt
 
   @override
   void dispose() {
-    _languageToggleController.dispose();
+    try {
+      _languageToggleController.dispose();
+    } catch (e) {
+      // Ignore disposal errors
+    }
     super.dispose();
   }
 
@@ -368,7 +372,14 @@ class _FlashcardContentState extends State<_FlashcardContent> with SingleTickerP
 
   @override
   void dispose() {
-    _animationController.dispose();
+    try {
+      if (_animationController.isAnimating) {
+        _animationController.stop();
+      }
+      _animationController.dispose();
+    } catch (e) {
+      // Ignore disposal errors
+    }
     super.dispose();
   }
 

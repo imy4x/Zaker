@@ -47,7 +47,14 @@ class _EnhancedSummaryWidgetState extends State<EnhancedSummaryWidget> with Sing
 
   @override
   void dispose() {
-    _languageToggleController.dispose();
+    try {
+      if (_languageToggleController.isAnimating) {
+        _languageToggleController.stop();
+      }
+      _languageToggleController.dispose();
+    } catch (e) {
+      // Ignore disposal errors
+    }
     super.dispose();
   }
 
@@ -214,6 +221,7 @@ class _EnhancedSummaryWidgetState extends State<EnhancedSummaryWidget> with Sing
                 },
                 child: SingleChildScrollView(
                   key: ValueKey(_currentLanguage),
+                  physics: const ClampingScrollPhysics(),
                   child: _SummaryMarkdown(
                     data: _formatSummary(_currentSummary),
                     context: context,
@@ -263,37 +271,55 @@ class _EnhancedSummaryWidgetState extends State<EnhancedSummaryWidget> with Sing
   }
 
   String _formatSummary(String originalSummary) {
-    // Enhanced formatting for better readability
-    String formatted = originalSummary;
+    if (originalSummary.trim().isEmpty) return originalSummary;
     
-    // Add special formatting for better visual hierarchy
+    // Create a copy to avoid modifying the original
+    String formatted = originalSummary.trim();
+    
+    // Clean up any existing formatting that might conflict
+    formatted = formatted.replaceAll(RegExp(r'\*\*\*+'), '**'); // Fix multiple asterisks
+    formatted = formatted.replaceAll(RegExp(r'\s+'), ' '); // Normalize whitespace  
+    formatted = formatted.replaceAll(RegExp(r'\n\s*\n\s*\n+'), '\n\n'); // Normalize line breaks
+    
+    // Preserve icons and emojis that are already in the content from AI
+    // Don't add duplicate icons if they already exist
+    
+    // Enhanced bullet points with better handling
     formatted = formatted.replaceAllMapped(
-      RegExp(r'^##\s+(.+)$', multiLine: true),
+      RegExp(r'^\s*[-\*]\s+(.+)$', multiLine: true),
+      (match) => '• ${match.group(1)}',
+    );
+    
+    // Enhanced numbered lists with better formatting
+    formatted = formatted.replaceAllMapped(
+      RegExp(r'^\s*(\d+)[\.\)]\s+(.+)$', multiLine: true),
+      (match) => '**${match.group(1)}.** ${match.group(2)}',
+    );
+    
+    // Add proper spacing around headers that don't already have icons
+    formatted = formatted.replaceAllMapped(
+      RegExp(r'^##\s+(?![📚📖📝🔴⭐⚙️])(.+)$', multiLine: true),
       (match) => '\n\n## 📚 ${match.group(1)}\n',
     );
     
     formatted = formatted.replaceAllMapped(
-      RegExp(r'^###\s+(.+)$', multiLine: true),
+      RegExp(r'^###\s+(?![💡✨🔍])(.+)$', multiLine: true),
       (match) => '\n### ✨ ${match.group(1)}\n',
     );
     
-    // Enhanced bullet points
+    // Improve spacing around horizontal rules
+    formatted = formatted.replaceAll(RegExp(r'\n*---+\n*'), '\n\n---\n\n');
+    
+    // Add extra spacing before major sections for better visual hierarchy
     formatted = formatted.replaceAllMapped(
-      RegExp(r'^-\s+(.+)$', multiLine: true),
-      (match) => '• ${match.group(1)}',
+      RegExp(r'\n(##\s+.+)\n', multiLine: true),
+      (match) => '\n\n${match.group(1)}\n\n',
     );
     
-    // Number formatting
-    formatted = formatted.replaceAllMapped(
-      RegExp(r'^(\d+)[-\.\)]\s+(.+)$', multiLine: true),
-      (match) => '**${match.group(1)}.** ${match.group(2)}',
-    );
-    
-    // Bold key terms (words that are likely important concepts)
-    formatted = formatted.replaceAllMapped(
-      RegExp(r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b'),
-      (match) => '**${match.group(1)}**',
-    );
+    // Final cleanup - ensure consistent spacing
+    formatted = formatted.replaceAll(RegExp(r'\n{4,}'), '\n\n\n'); // Max 3 newlines for section breaks
+    formatted = formatted.replaceAll(RegExp(r'\n{2,}(###)'), '\n\n\1'); // Consistent spacing before subsections
+    formatted = formatted.trim();
     
     return formatted;
   }
@@ -320,41 +346,42 @@ class _SummaryMarkdown extends StatelessWidget {
       child: MarkdownBody(
         data: data,
       styleSheet: MarkdownStyleSheet(
-        // Headers
+        // Headers - Using theme colors with slight variations
         h1: fontFamily(
           fontSize: ResponsiveUtils.getResponsiveFontSize(context, 24),
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.primary,
-          height: 1.4,
+          height: 1.6, // Better spacing
         ),
         h2: fontFamily(
           fontSize: ResponsiveUtils.getResponsiveFontSize(context, 20),
           fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.primary,
-          height: 1.4,
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.9),
+          height: 1.6, // Better spacing
         ),
         h3: fontFamily(
           fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18),
           fontWeight: FontWeight.w600,
           color: Theme.of(context).colorScheme.secondary,
-          height: 1.4,
+          height: 1.5, // Better spacing
         ),
         
-        // Body text
+        // Body text - Improved readability
         p: fontFamily(
           fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16),
           color: Theme.of(context).colorScheme.onSurface,
-          height: 1.8,
+          height: 1.8, // Better line spacing
+          fontWeight: FontWeight.w400,
         ),
         
-        // Lists
+        // Lists - Better spacing and visual appeal
         listBullet: fontFamily(
           fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16),
           color: Theme.of(context).colorScheme.onSurface,
-          height: 1.7,
+          height: 1.7, // Better spacing for lists
         ),
         
-        // Emphasis
+        // Emphasis - Keep original colors but improve
         strong: fontFamily(
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.primary,
@@ -372,12 +399,12 @@ class _SummaryMarkdown extends StatelessWidget {
           fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14),
         ),
         
-        // Spacing
-        h1Padding: const EdgeInsets.symmetric(vertical: 16),
-        h2Padding: const EdgeInsets.symmetric(vertical: 12),
-        h3Padding: const EdgeInsets.symmetric(vertical: 8),
-        pPadding: const EdgeInsets.symmetric(vertical: 4),
-        listBulletPadding: const EdgeInsets.symmetric(vertical: 2),
+        // Better Spacing - The key improvement
+        h1Padding: const EdgeInsets.only(top: 28, bottom: 18), // More space around main headers
+        h2Padding: const EdgeInsets.only(top: 24, bottom: 14), // Better section spacing with emojis
+        h3Padding: const EdgeInsets.only(top: 18, bottom: 10), // Clear subsection breaks
+        pPadding: const EdgeInsets.only(bottom: 14), // Better paragraph separation
+        listBulletPadding: const EdgeInsets.only(bottom: 8), // More space between list items
       ),
       selectable: true,
       ),

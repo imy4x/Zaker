@@ -39,13 +39,29 @@ class StudyMaterialScreen extends StatelessWidget {
     final selectedQuestions = shuffledQuestions.take(questionsToTake).toList();
 
     final questionsWithShuffledOptions = selectedQuestions.map((q) {
-      final correctAnswerText = q.options[q.correctAnswerIndex];
-      final shuffledOptions = List<String>.from(q.options)..shuffle();
-      final newCorrectIndex = shuffledOptions.indexOf(correctAnswerText);
+      final correctAnswerTextAr = q.optionsAr[q.correctAnswerIndex];
+      final correctAnswerTextEn = q.optionsEn[q.correctAnswerIndex];
+      final shuffledOptionsAr = List<String>.from(q.optionsAr)..shuffle();
+      final shuffledOptionsEn = List<String>.from(q.optionsEn)..shuffle();
+      final newCorrectIndexAr = shuffledOptionsAr.indexOf(correctAnswerTextAr);
+      final newCorrectIndexEn = shuffledOptionsEn.indexOf(correctAnswerTextEn);
+      
+      // Make sure both language versions have the same correct index
+      // by adjusting the English options to match the Arabic order
+      final finalOptionsEn = List<String>.from(shuffledOptionsEn);
+      if (newCorrectIndexAr != newCorrectIndexEn) {
+        // Swap the correct answer to the same position as Arabic
+        final temp = finalOptionsEn[newCorrectIndexAr];
+        finalOptionsEn[newCorrectIndexAr] = correctAnswerTextEn;
+        finalOptionsEn[newCorrectIndexEn] = temp;
+      }
+      
       return QuizQuestion(
-          question: q.question,
-          options: shuffledOptions,
-          correctAnswerIndex: newCorrectIndex,
+          questionAr: q.questionAr,
+          optionsAr: shuffledOptionsAr,
+          questionEn: q.questionEn,
+          optionsEn: finalOptionsEn,
+          correctAnswerIndex: newCorrectIndexAr,
           difficulty: q.difficulty);
     }).toList();
 
@@ -116,6 +132,7 @@ class StudyMaterialScreen extends StatelessWidget {
         
         return Center(
           child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
             padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

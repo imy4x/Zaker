@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zaker/models/quiz_question.dart';
+import 'package:zaker/constants/app_constants.dart';
 
 class QuizScreen extends StatefulWidget {
   final List<QuizQuestion> questions;
@@ -64,8 +65,19 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _languageToggleController.dispose();
-    _questionTransitionController.dispose();
+    try {
+      if (_languageToggleController.isAnimating) {
+        _languageToggleController.stop();
+      }
+      _languageToggleController.dispose();
+      
+      if (_questionTransitionController.isAnimating) {
+        _questionTransitionController.stop();
+      }
+      _questionTransitionController.dispose();
+    } catch (e) {
+      // Ignore disposal errors
+    }
     super.dispose();
   }
 
@@ -255,6 +267,99 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
     if (index == widget.questions[_currentQuestionIndex].correctAnswerIndex) return Border.all(color: Colors.green.shade600, width: 2);
     if (index == _selectedAnswerIndex) return Border.all(color: Colors.red.shade600, width: 2);
     return Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.3));
+  }
+
+  Widget _buildDifficultyBadge(QuizDifficulty difficulty) {
+    final isArabic = _currentLanguage == 'ar';
+    String difficultyText;
+    Color difficultyColor;
+    IconData difficultyIcon;
+
+    switch (difficulty) {
+      case QuizDifficulty.easy:
+        difficultyText = isArabic ? 'سهل' : 'Easy';
+        difficultyColor = Colors.green;
+        difficultyIcon = Icons.sentiment_satisfied_rounded;
+        break;
+      case QuizDifficulty.medium:
+        difficultyText = isArabic ? 'متوسط' : 'Medium';
+        difficultyColor = Colors.orange;
+        difficultyIcon = Icons.sentiment_neutral_rounded;
+        break;
+      case QuizDifficulty.hard:
+        difficultyText = isArabic ? 'صعب' : 'Hard';
+        difficultyColor = Colors.red;
+        difficultyIcon = Icons.sentiment_dissatisfied_rounded;
+        break;
+      case QuizDifficulty.veryHard:
+        difficultyText = isArabic ? 'صعب جداً' : 'Very Hard';
+        difficultyColor = Colors.purple;
+        difficultyIcon = Icons.sentiment_very_dissatisfied_rounded;
+        break;
+      case QuizDifficulty.mixed:
+        difficultyText = isArabic ? 'متنوع' : 'Mixed';
+        difficultyColor = Colors.blue;
+        difficultyIcon = Icons.shuffle_rounded;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            difficultyColor,
+            difficultyColor.withOpacity(0.7),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: difficultyColor.withOpacity(0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.white.withOpacity(0.1),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+        border: Border.all(
+          color: Colors.white.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              difficultyIcon,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            isArabic ? 'مستوى الصعوبة: $difficultyText' : 'Difficulty: $difficultyText',
+            style: GoogleFonts.cairo(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -463,8 +568,16 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
     final options = currentQuestion.getOptions(_currentLanguage);
     
     return SingleChildScrollView(
+      physics: const ClampingScrollPhysics(),
       child: Column(
         children: [
+          // Difficulty Level Badge - Centered
+          Center(
+            child: _buildDifficultyBadge(currentQuestion.difficulty),
+          ),
+          
+          const SizedBox(height: 24),
+          
           // Question Card
           Container(
             width: double.infinity,

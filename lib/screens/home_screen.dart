@@ -73,57 +73,58 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('جلساتي'),
-        actions: [
-          if (provider.state != AppState.loading) // Only show when not analyzing
-            IconButton(
-              icon: const Icon(Icons.create_new_folder_outlined),
-              onPressed: _showCreateOrRenameListDialog,
-              tooltip: 'إنشاء قائمة جديدة',
-            )
-        ],
-      ),
-      body: Consumer<StudyProvider>(
-        builder: (context, provider, child) {
-          if (provider.state == AppState.loading) return const LoadingView();
-          
-          final lists = provider.lists;
-          final sessions = provider.sessions;
-          final uncategorizedSessions = sessions.where((s) => s.listId == null).toList();
-
-          if (lists.isEmpty && sessions.isEmpty) return _buildEmptyState();
-
-          return ListView(
-            padding: EdgeInsets.fromLTRB(
-              ResponsiveUtils.getResponsivePadding(context),
-              ResponsiveUtils.getResponsiveSpacing(context),
-              ResponsiveUtils.getResponsivePadding(context),
-              96,
-            ),
-            children: [
-              ...lists.map((list) {
-                final listSessions = sessions.where((s) => s.listId == list.id).toList();
-                return _buildListTile(provider, list, listSessions);
-              }),
-              if(uncategorizedSessions.isNotEmpty)
-                _buildListTile(provider, null, uncategorizedSessions),
+    return Consumer<StudyProvider>(
+      builder: (context, provider, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('جلساتي'),
+            actions: [
+              if (provider.state != AppState.loading) // Only show when not analyzing
+                IconButton(
+                  icon: const Icon(Icons.create_new_folder_outlined),
+                  onPressed: _showCreateOrRenameListDialog,
+                  tooltip: 'إنشاء قائمة جديدة',
+                )
             ],
-          );
-        },
+          ),
+          body: provider.state == AppState.loading 
+              ? const LoadingView()
+              : _buildMainContent(provider),
+          floatingActionButton: provider.state == AppState.loading
+              ? const SizedBox.shrink()
+              : FloatingActionButton.extended(
+                  onPressed: _createNewSession,
+                  label: const Text('جلسة جديدة'),
+                  icon: const Icon(Icons.add_rounded),
+                ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMainContent(StudyProvider provider) {
+    final lists = provider.lists;
+    final sessions = provider.sessions;
+    final uncategorizedSessions = sessions.where((s) => s.listId == null).toList();
+
+    if (lists.isEmpty && sessions.isEmpty) return _buildEmptyState();
+
+    return ListView(
+      physics: const ClampingScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(
+        ResponsiveUtils.getResponsivePadding(context),
+        ResponsiveUtils.getResponsiveSpacing(context),
+        ResponsiveUtils.getResponsivePadding(context),
+        96,
       ),
-      floatingActionButton: Consumer<StudyProvider>(
-        builder: (context, provider, child) {
-          return provider.state == AppState.loading
-            ? const SizedBox.shrink()
-            : FloatingActionButton.extended(
-                onPressed: _createNewSession,
-                label: const Text('جلسة جديدة'),
-                icon: const Icon(Icons.add_rounded),
-              );
-        }
-      ),
+      children: [
+        ...lists.map((list) {
+          final listSessions = sessions.where((s) => s.listId == list.id).toList();
+          return _buildListTile(provider, list, listSessions);
+        }),
+        if(uncategorizedSessions.isNotEmpty)
+          _buildListTile(provider, null, uncategorizedSessions),
+      ],
     );
   }
 
@@ -1218,11 +1219,11 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
 
   IconData _getDepthIcon(AnalysisDepth depth) {
     switch (depth) {
-      case AnalysisDepth.quick:
+      case AnalysisDepth.light:
         return Icons.speed_rounded;
       case AnalysisDepth.medium:
         return Icons.balance_rounded;
-      case AnalysisDepth.detailed:
+      case AnalysisDepth.deep:
         return Icons.psychology_rounded;
     }
   }
