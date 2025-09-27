@@ -278,47 +278,52 @@ class _EnhancedSummaryWidgetState extends State<EnhancedSummaryWidget> with Sing
     
     // Clean up any existing formatting that might conflict
     formatted = formatted.replaceAll(RegExp(r'\*\*\*+'), '**'); // Fix multiple asterisks
-    formatted = formatted.replaceAll(RegExp(r'\s+'), ' '); // Normalize whitespace  
-    formatted = formatted.replaceAll(RegExp(r'\n\s*\n\s*\n+'), '\n\n'); // Normalize line breaks
     
-    // Preserve icons and emojis that are already in the content from AI
-    // Don't add duplicate icons if they already exist
+    // Add generous spacing and visual breaks
+    formatted = formatted.replaceAllMapped(
+      RegExp(r'^##\s+(.+)$', multiLine: true),
+      (match) => '\n\n\n## 📚 ${match.group(1)}\n\n',
+    );
     
-    // Enhanced bullet points with better handling
+    formatted = formatted.replaceAllMapped(
+      RegExp(r'^###\s+(.+)$', multiLine: true),
+      (match) => '\n\n### ✨ ${match.group(1)}\n\n',
+    );
+    
+    // Break up long paragraphs for better readability
+    formatted = formatted.replaceAllMapped(
+      RegExp(r'([^\n]{200,}?)([.!?])\s+([A-Zا-ي])', multiLine: true),
+      (match) => '${match.group(1)}${match.group(2)}\n\n${match.group(3)}',
+    );
+    
+    // Enhanced bullet points with better spacing
     formatted = formatted.replaceAllMapped(
       RegExp(r'^\s*[-\*]\s+(.+)$', multiLine: true),
-      (match) => '• ${match.group(1)}',
+      (match) => '\n• ${match.group(1)}\n',
     );
     
-    // Enhanced numbered lists with better formatting
+    // Number formatting with breathing room
     formatted = formatted.replaceAllMapped(
       RegExp(r'^\s*(\d+)[\.\)]\s+(.+)$', multiLine: true),
-      (match) => '**${match.group(1)}.** ${match.group(2)}',
+      (match) => '\n\n**${match.group(1)}.** ${match.group(2)}\n',
     );
     
-    // Add proper spacing around headers that don't already have icons
+    // Add visual separation before important concepts
     formatted = formatted.replaceAllMapped(
-      RegExp(r'^##\s+(?![📚📖📝🔴⭐⚙️])(.+)$', multiLine: true),
-      (match) => '\n\n## 📚 ${match.group(1)}\n',
+      RegExp(r'\*\*([^*]+)\*\*', multiLine: true),
+      (match) => '\n\n**${match.group(1)}**\n',
     );
     
+    // Clean up excessive spacing but keep generous gaps
+    formatted = formatted.replaceAll(RegExp(r'\n{4,}'), '\n\n\n'); // Max 3 newlines
+    formatted = formatted.replaceAll(RegExp(r'\s+'), ' '); // Normalize spaces
+    
+    // Ensure good paragraph breaks
     formatted = formatted.replaceAllMapped(
-      RegExp(r'^###\s+(?![💡✨🔍])(.+)$', multiLine: true),
-      (match) => '\n### ✨ ${match.group(1)}\n',
+      RegExp(r'([.!?])\s*\n\s*([A-Zا-ي])', multiLine: true),
+      (match) => '${match.group(1)}\n\n${match.group(2)}',
     );
     
-    // Improve spacing around horizontal rules
-    formatted = formatted.replaceAll(RegExp(r'\n*---+\n*'), '\n\n---\n\n');
-    
-    // Add extra spacing before major sections for better visual hierarchy
-    formatted = formatted.replaceAllMapped(
-      RegExp(r'\n(##\s+.+)\n', multiLine: true),
-      (match) => '\n\n${match.group(1)}\n\n',
-    );
-    
-    // Final cleanup - ensure consistent spacing
-    formatted = formatted.replaceAll(RegExp(r'\n{4,}'), '\n\n\n'); // Max 3 newlines for section breaks
-    formatted = formatted.replaceAll(RegExp(r'\n{2,}(###)'), '\n\n\1'); // Consistent spacing before subsections
     formatted = formatted.trim();
     
     return formatted;
@@ -346,65 +351,78 @@ class _SummaryMarkdown extends StatelessWidget {
       child: MarkdownBody(
         data: data,
       styleSheet: MarkdownStyleSheet(
-        // Headers - Using theme colors with slight variations
+        // Main Headers - Prominent and inviting
         h1: fontFamily(
-          fontSize: ResponsiveUtils.getResponsiveFontSize(context, 24),
-          fontWeight: FontWeight.bold,
+          fontSize: ResponsiveUtils.getResponsiveFontSize(context, 22), // Smaller but prominent
+          fontWeight: FontWeight.w800,
           color: Theme.of(context).colorScheme.primary,
-          height: 1.6, // Better spacing
+          height: 1.8, // Generous line height
+          letterSpacing: 0.5,
         ),
+        
+        // Section Headers - Clear hierarchy
         h2: fontFamily(
-          fontSize: ResponsiveUtils.getResponsiveFontSize(context, 20),
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.9),
-          height: 1.6, // Better spacing
-        ),
-        h3: fontFamily(
-          fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18),
-          fontWeight: FontWeight.w600,
+          fontSize: ResponsiveUtils.getResponsiveFontSize(context, 19), // Reduced size
+          fontWeight: FontWeight.w700,
           color: Theme.of(context).colorScheme.secondary,
-          height: 1.5, // Better spacing
+          height: 1.7,
+          letterSpacing: 0.3,
         ),
         
-        // Body text - Improved readability
+        // Sub Headers - Distinct but not overwhelming
+        h3: fontFamily(
+          fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16), // Much smaller
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+          height: 1.6,
+          letterSpacing: 0.2,
+        ),
+        
+        // Body text - Comfortable reading
         p: fontFamily(
-          fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16),
-          color: Theme.of(context).colorScheme.onSurface,
-          height: 1.8, // Better line spacing
+          fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14), // Smaller, easier to read
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.87),
+          height: 2.4, // Very generous line spacing
           fontWeight: FontWeight.w400,
+          letterSpacing: 0.1,
         ),
         
-        // Lists - Better spacing and visual appeal
+        // Lists - Well spaced and readable
         listBullet: fontFamily(
-          fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16),
-          color: Theme.of(context).colorScheme.onSurface,
-          height: 1.7, // Better spacing for lists
+          fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14),
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.85),
+          height: 2.2, // Generous spacing between items
+          letterSpacing: 0.1,
         ),
         
-        // Emphasis - Keep original colors but improve
+        // Important content - Eye-catching but not harsh
         strong: fontFamily(
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
           color: Theme.of(context).colorScheme.primary,
+          letterSpacing: 0.2,
         ),
         
+        // Emphasis - Subtle but noticeable
         em: fontFamily(
           fontStyle: FontStyle.italic,
           color: Theme.of(context).colorScheme.secondary,
+          fontWeight: FontWeight.w500,
         ),
         
-        // Code (for highlighting key terms)
+        // Code/Key terms - Highlighted nicely
         code: GoogleFonts.jetBrainsMono(
-          backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-          fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14),
+          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+          color: Theme.of(context).colorScheme.primary,
+          fontSize: ResponsiveUtils.getResponsiveFontSize(context, 13),
+          fontWeight: FontWeight.w600,
         ),
         
-        // Better Spacing - The key improvement
-        h1Padding: const EdgeInsets.only(top: 28, bottom: 18), // More space around main headers
-        h2Padding: const EdgeInsets.only(top: 24, bottom: 14), // Better section spacing with emojis
-        h3Padding: const EdgeInsets.only(top: 18, bottom: 10), // Clear subsection breaks
-        pPadding: const EdgeInsets.only(bottom: 14), // Better paragraph separation
-        listBulletPadding: const EdgeInsets.only(bottom: 8), // More space between list items
+        // Generous Spacing - Much more breathing room
+        h1Padding: const EdgeInsets.only(top: 36, bottom: 24), // Lots of space for main headers
+        h2Padding: const EdgeInsets.only(top: 32, bottom: 20), // Clear section breaks
+        h3Padding: const EdgeInsets.only(top: 24, bottom: 16), // Good subsection spacing
+        pPadding: const EdgeInsets.only(bottom: 20), // Big gaps between paragraphs
+        listBulletPadding: const EdgeInsets.only(bottom: 12), // Breathing room for lists
       ),
       selectable: true,
       ),

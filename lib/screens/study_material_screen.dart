@@ -138,7 +138,7 @@ class StudyMaterialScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.school_outlined,
-                    size: 80, color: theme.primaryColor),
+                    size: 80, color: theme.colorScheme.primary),
                 const SizedBox(height: 16),
                 Text('اختبر فهمك للمادة',
                     style: theme.textTheme.displayLarge

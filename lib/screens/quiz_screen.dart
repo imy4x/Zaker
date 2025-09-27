@@ -371,7 +371,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
     return Directionality(
       textDirection: textDirection,
       child: Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -452,7 +452,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
               end: Alignment.bottomCenter,
               colors: [
                 Theme.of(context).colorScheme.surface,
-                Theme.of(context).colorScheme.background,
+                Theme.of(context).colorScheme.surface.withOpacity(0.8),
               ],
             ),
           ),
