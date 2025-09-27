@@ -315,8 +315,10 @@ class _SummaryMarkdown extends StatelessWidget {
     final isArabic = languageCode == 'ar';
     final fontFamily = isArabic ? GoogleFonts.cairo : GoogleFonts.inter;
     
-    return MarkdownBody(
-      data: data,
+    return Directionality(
+      textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+      child: MarkdownBody(
+        data: data,
       styleSheet: MarkdownStyleSheet(
         // Headers
         h1: fontFamily(
@@ -378,6 +380,7 @@ class _SummaryMarkdown extends StatelessWidget {
         listBulletPadding: const EdgeInsets.symmetric(vertical: 2),
       ),
       selectable: true,
+      ),
     );
   }
 }

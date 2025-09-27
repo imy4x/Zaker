@@ -142,7 +142,7 @@ class GeminiService {
         
     final prompt = '''
       You are a professional educational test designer. Your task is to create a diverse question bank from the following text to measure different levels of understanding.
-      **Task**: Create as many multiple-choice questions as possible (up to 50).
+      **Task**: Create as many multiple-choice questions as possible (up to 50) in both Arabic and English.
       **Strict Instructions**:
       1.  **Difficulty Distribution**: You must strictly follow this difficulty distribution:
           - **30% easy**: Direct questions testing recall of information.
@@ -150,9 +150,9 @@ class GeminiService {
           - **40% hard**: Application questions requiring the student to apply a concept to a new scenario.
           - **10% very_hard**: Inferential questions testing a very deep understanding of the material and requiring critical thinking.
       2.  **Smart Distractors**: The incorrect options (distractors) must be plausible and convincing, not obviously wrong.
-      3.  **Language**: The test must be exclusively in **$targetLanguage**.
-      4.  **Format**: Return the result only as a valid JSON object with one key "questions" which contains a JSON array. Each question must include a "difficulty" key with the value "easy", "medium", "hard", or "very_hard".
-          `{"questions": [{"question":"...","options":["...","...","...","..."],"correctAnswerIndex":0, "difficulty":"easy"},...]}`$customNotesSection
+      3.  **Bilingual Output**: Create each question and all options in both Arabic and English with the same content quality.
+      4.  **Format**: Return the result only as a valid JSON object with one key "questions" which contains a JSON array. Each question must include a "difficulty" key.
+          `{"questions": [{"questionAr":"...","optionsAr":["...","...","...","..."],"questionEn":"...","optionsEn":["...","...","...","..."],"correctAnswerIndex":0, "difficulty":"easy"},...]}`$customNotesSection
       **Source Text**: """$text"""
     ''';
     try {

@@ -156,8 +156,9 @@ class AppDialogs {
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(context).pop(false),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF636E72),
-                          side: const BorderSide(color: Color(0xFF636E72)),
+                          foregroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                          side: BorderSide(color: Theme.of(context).colorScheme.outline),
+                          backgroundColor: Theme.of(context).colorScheme.surface,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -166,7 +167,7 @@ class AppDialogs {
                         child: Text(
                           'إلغاء',
                           style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: const Color(0xFF636E72),
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
                           ),
                         ),
                       ),

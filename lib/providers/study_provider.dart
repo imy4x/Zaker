@@ -95,7 +95,7 @@ class StudyProvider extends ChangeNotifier {
     String targetLanguage, 
     String title,
     AnalysisDepth depth,
-    {String? customNotes}
+    {String? customNotes, String? listId}
   ) async {
     if (!_usageService.canUse(count: files.length)) {
       _errorMessage = 'رصيدك اليومي لا يكفي لتحليل هذا العدد من الملفات.';
@@ -151,6 +151,7 @@ class StudyProvider extends ChangeNotifier {
         summaryEn: summaryData['en'] ?? '',
         flashcards: flashcards,
         quizQuestions: quizQuestions,
+        listId: listId, // Assign to selected folder
       );
       
       _sessions.insert(0, newSession);

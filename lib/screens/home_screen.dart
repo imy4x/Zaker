@@ -34,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
       details['title'] as String,
       details['depth'] as AnalysisDepth,
       customNotes: details['notes'] as String?,
+      listId: details['listId'] as String?,
     );
 
     if (!mounted) return;
@@ -76,11 +77,12 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('جلساتي'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.create_new_folder_outlined),
-            onPressed: _showCreateOrRenameListDialog,
-            tooltip: 'إنشاء قائمة جديدة',
-          )
+          if (provider.state != AppState.loading) // Only show when not analyzing
+            IconButton(
+              icon: const Icon(Icons.create_new_folder_outlined),
+              onPressed: _showCreateOrRenameListDialog,
+              tooltip: 'إنشاء قائمة جديدة',
+            )
         ],
       ),
       body: Consumer<StudyProvider>(
@@ -209,7 +211,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop('NO_ACTION'), child: const Text('إلغاء')),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop('NO_ACTION'), 
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+            ),
+            child: const Text('إلغاء'),
+          ),
         ],
       )
     );
@@ -266,6 +274,9 @@ class _RenameSessionDialogState extends State<_RenameSessionDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
+          style: TextButton.styleFrom(
+            foregroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+          ),
           child: const Text('إلغاء'),
         ),
         ElevatedButton(
@@ -386,9 +397,10 @@ class _CreateListDialogState extends State<_CreateListDialog> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF636E72),
-                        side: const BorderSide(color: Color(0xFF636E72)),
+                        foregroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                        side: BorderSide(color: Theme.of(context).colorScheme.outline),
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: Theme.of(context).colorScheme.surface,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -396,7 +408,7 @@ class _CreateListDialogState extends State<_CreateListDialog> {
                       child: Text(
                         'إلغاء',
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: const Color(0xFF636E72),
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
                         ),
                       ),
                     ),
@@ -453,6 +465,7 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
   List<PlatformFile> _selectedFiles = [];
   String _selectedLanguage = 'العربية';
   AnalysisDepth _selectedDepth = AnalysisDepth.medium;
+  String? _selectedListId; // null means no folder (uncategorized)
 
   @override
   void initState() {
@@ -1055,6 +1068,154 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)}MB';
   }
 
+  Widget _buildFolderSelectionSection() {
+    final provider = context.watch<StudyProvider>();
+    final availableLists = provider.lists;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'حدد مجلد لحفظ الجلسة',
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 16),
+        
+        // Option for no folder (uncategorized)
+        Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: _buildFolderOption(
+            title: 'غير مصنف',
+            subtitle: 'لا حاجة لمجلد',
+            icon: Icons.inventory_2_outlined,
+            isSelected: _selectedListId == null,
+            onTap: () => setState(() => _selectedListId = null),
+          ),
+        ),
+        
+        // Available folders
+        ...availableLists.map((list) => Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: _buildFolderOption(
+            title: list.name,
+            subtitle: 'مجلد موجود',
+            icon: list.icon,
+            color: list.color,
+            isSelected: _selectedListId == list.id,
+            onTap: () => setState(() => _selectedListId = list.id),
+          ),
+        )).toList(),
+        
+        const SizedBox(height: 12),
+        
+        // Create new folder hint
+        if (availableLists.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'يمكنك إنشاء مجلدات جديدة من الصفحة الرئيسية',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildFolderOption({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    Color? color,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? Theme.of(context).colorScheme.primary.withOpacity(0.1) 
+              : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected 
+                ? Theme.of(context).colorScheme.primary 
+                : Theme.of(context).colorScheme.outline.withOpacity(0.2),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: (color ?? (isSelected 
+                    ? Theme.of(context).colorScheme.primary 
+                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.1))),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      color: isSelected 
+                          ? Theme.of(context).colorScheme.primary 
+                          : Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check_circle_rounded,
+                color: Theme.of(context).colorScheme.primary,
+                size: 20,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   IconData _getDepthIcon(AnalysisDepth depth) {
     switch (depth) {
       case AnalysisDepth.quick:
@@ -1189,10 +1350,22 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                       
                       const SizedBox(height: 20),
                       
-                      // Step 3: AI Settings
+                      // Step 3: Folder Selection
                       _buildStepCard(
                         context: context,
                         stepNumber: 3,
+                        title: 'اختيار المجلد',
+                        subtitle: 'حدد مكان حفظ الجلسة (اختياري)',
+                        icon: Icons.folder_outlined,
+                        child: _buildFolderSelectionSection(),
+                      ),
+                      
+                      const SizedBox(height: 20),
+                      
+                      // Step 4: AI Settings
+                      _buildStepCard(
+                        context: context,
+                        stepNumber: 4,
                         title: 'إعدادات الذكاء الاصطناعي',
                         subtitle: 'اللغة وعمق التحليل',
                         icon: Icons.settings_suggest_rounded,
@@ -1225,6 +1398,9 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
+                        foregroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                        side: BorderSide(color: Theme.of(context).colorScheme.outline),
+                        backgroundColor: Theme.of(context).colorScheme.surface,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -1232,7 +1408,9 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                       ),
                       child: Text(
                         'إلغاء',
-                        style: Theme.of(context).textTheme.labelLarge,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                        ),
                       ),
                     ),
                   ),
@@ -1264,6 +1442,7 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                                     'language': _selectedLanguage,
                                     'depth': _selectedDepth,
                                     'notes': _notesController.text.trim(),
+                                    'listId': _selectedListId,
                                   });
                                 }
                               }
