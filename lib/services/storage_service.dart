@@ -10,7 +10,8 @@ class StorageService {
   // --- دوال الجلسات ---
   Future<void> saveSessions(List<StudySession> sessions) async {
     final prefs = await SharedPreferences.getInstance();
-    final List<String> sessionsJson = sessions.map((s) => jsonEncode(s.toJson())).toList();
+    final List<String> sessionsJson =
+        sessions.map((s) => jsonEncode(s.toJson())).toList();
     await prefs.setStringList(_sessionsKey, sessionsJson);
   }
 
@@ -19,7 +20,9 @@ class StorageService {
     final sessionsJson = prefs.getStringList(_sessionsKey);
     if (sessionsJson != null) {
       try {
-        return sessionsJson.map((s) => StudySession.fromJson(jsonDecode(s))).toList();
+        return sessionsJson
+            .map((s) => StudySession.fromJson(jsonDecode(s)))
+            .toList();
       } catch (e) {
         print("Error decoding sessions: $e. Clearing old data.");
         await prefs.remove(_sessionsKey);
@@ -32,7 +35,8 @@ class StorageService {
   // --- دوال القوائم ---
   Future<void> saveLists(List<StudyList> lists) async {
     final prefs = await SharedPreferences.getInstance();
-    final List<String> listsJson = lists.map((l) => jsonEncode(l.toJson())).toList();
+    final List<String> listsJson =
+        lists.map((l) => jsonEncode(l.toJson())).toList();
     await prefs.setStringList(_listsKey, listsJson);
   }
 
@@ -51,4 +55,3 @@ class StorageService {
     return [];
   }
 }
-

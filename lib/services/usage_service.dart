@@ -44,7 +44,7 @@ class UsageService {
       try {
         return jsonDecode(jsonString);
       } catch (e) {
-         // In case of corrupted data, return default
+        // In case of corrupted data, return default
       }
     }
     return {
@@ -58,7 +58,7 @@ class UsageService {
     final currentUsage = stats['usage_count'] as int? ?? 0;
     return _dailyLimit - currentUsage;
   }
-  
+
   Duration getTimeUntilReset() {
     final now = DateTime.now();
     final tomorrow = DateTime(now.year, now.month, now.day + 1);

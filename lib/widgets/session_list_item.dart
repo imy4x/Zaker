@@ -34,9 +34,8 @@ class SessionListItem extends StatelessWidget {
       elevation: 2,
       shadowColor: Colors.black.withOpacity(0.1),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3))
-      ),
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3))),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -73,7 +72,9 @@ class SessionListItem extends StatelessWidget {
                     Row(
                       children: [
                         Icon(Icons.calendar_today_outlined,
-                            size: 14, color: theme.colorScheme.onSurface.withOpacity(0.6)),
+                            size: 14,
+                            color:
+                                theme.colorScheme.onSurface.withOpacity(0.6)),
                         const SizedBox(width: 4),
                         Text(
                           formattedDate,
@@ -95,12 +96,14 @@ class SessionListItem extends StatelessWidget {
                   }
                 },
                 itemBuilder: (context) => [
-                  const PopupMenuItem(value: 'rename', child: Text('إعادة تسمية')),
+                  const PopupMenuItem(
+                      value: 'rename', child: Text('إعادة تسمية')),
                   const PopupMenuItem(value: 'move', child: Text('نقل إلى...')),
                   const PopupMenuDivider(),
                   PopupMenuItem(
-                    value: 'delete', 
-                    child: Text('حذف', style: TextStyle(color: Colors.red.shade700)),
+                    value: 'delete',
+                    child: Text('حذف',
+                        style: TextStyle(color: Colors.red.shade700)),
                   ),
                 ],
               ),
@@ -111,4 +114,3 @@ class SessionListItem extends StatelessWidget {
     );
   }
 }
-

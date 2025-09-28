@@ -35,24 +35,25 @@ class TextExtractionService {
       final PdfDocument document = PdfDocument(inputBytes: bytes);
       final String text = PdfTextExtractor(document).extractText();
       document.dispose();
-      
+
       if (text.trim().isEmpty) {
         throw Exception('ملف الـ PDF فارغ أو لا يمكن قراءة النص منه.');
       }
       return text;
     } catch (e) {
       print("Error extracting PDF text: $e");
-      throw Exception('فشل في قراءة ملف الـ PDF. قد يكون الملف محمياً أو تالفاً.');
+      throw Exception(
+          'فشل في قراءة ملف الـ PDF. قد يكون الملف محمياً أو تالفاً.');
     }
   }
 
   // --- تعديل: يمكن استخدام هذه الدالة لاختيار الصور ---
   Future<List<File>> pickImages() async {
-      final ImagePicker imagePicker = ImagePicker();
-      final List<XFile> pickedFiles = await imagePicker.pickMultiImage();
-      if(pickedFiles.isNotEmpty){
-        return pickedFiles.map((xfile) => File(xfile.path)).toList();
-      }
-      return [];
+    final ImagePicker imagePicker = ImagePicker();
+    final List<XFile> pickedFiles = await imagePicker.pickMultiImage();
+    if (pickedFiles.isNotEmpty) {
+      return pickedFiles.map((xfile) => File(xfile.path)).toList();
+    }
+    return [];
   }
 }

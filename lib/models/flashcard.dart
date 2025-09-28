@@ -5,7 +5,7 @@ class Flashcard {
   final String answerEn;
 
   Flashcard({
-    required this.questionAr, 
+    required this.questionAr,
     required this.answerAr,
     required this.questionEn,
     required this.answerEn,
@@ -13,10 +13,10 @@ class Flashcard {
 
   // Legacy support for old single-language flashcards
   Flashcard.legacy({required String question, required String answer})
-    : questionAr = question,
-      answerAr = answer,
-      questionEn = question, // Fallback to same content
-      answerEn = answer;
+      : questionAr = question,
+        answerAr = answer,
+        questionEn = question, // Fallback to same content
+        answerEn = answer;
 
   // Get content based on language
   String getQuestion(String languageCode) {

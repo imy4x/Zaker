@@ -38,9 +38,9 @@ class StudySession {
     this.languageCode = 'ar',
     this.listId,
     Set<String>? correctlyAnsweredQuestions,
-  }) : summaryAr = summary,
-       summaryEn = summary, // Fallback to same content
-       correctlyAnsweredQuestions = correctlyAnsweredQuestions ?? {};
+  })  : summaryAr = summary,
+        summaryEn = summary, // Fallback to same content
+        correctlyAnsweredQuestions = correctlyAnsweredQuestions ?? {};
 
   // Get summary based on language
   String getSummary(String languageCode) {
@@ -56,27 +56,43 @@ class StudySession {
       return StudySession(
         id: json['id'] ?? DateTime.now().toIso8601String(),
         title: json['title'] ?? 'جلسة مذاكرة',
-        createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
+        createdAt: DateTime.parse(
+            json['createdAt'] ?? DateTime.now().toIso8601String()),
         summaryAr: json['summaryAr'] ?? '',
         summaryEn: json['summaryEn'] ?? '',
-        flashcards: (json['flashcards'] as List<dynamic>?)?.map((e) => Flashcard.fromJson(e)).toList() ?? [],
-        quizQuestions: (json['quizQuestions'] as List<dynamic>?)?.map((e) => QuizQuestion.fromJson(e)).toList() ?? [],
+        flashcards: (json['flashcards'] as List<dynamic>?)
+                ?.map((e) => Flashcard.fromJson(e))
+                .toList() ??
+            [],
+        quizQuestions: (json['quizQuestions'] as List<dynamic>?)
+                ?.map((e) => QuizQuestion.fromJson(e))
+                .toList() ??
+            [],
         languageCode: json['languageCode'] ?? 'ar',
         listId: json['listId'],
-        correctlyAnsweredQuestions: Set<String>.from(json['correctlyAnsweredQuestions'] as List<dynamic>? ?? []),
+        correctlyAnsweredQuestions: Set<String>.from(
+            json['correctlyAnsweredQuestions'] as List<dynamic>? ?? []),
       );
     } else {
       // Legacy format
       return StudySession.legacy(
         id: json['id'] ?? DateTime.now().toIso8601String(),
         title: json['title'] ?? 'جلسة مذاكرة',
-        createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
+        createdAt: DateTime.parse(
+            json['createdAt'] ?? DateTime.now().toIso8601String()),
         summary: json['summary'] ?? '',
-        flashcards: (json['flashcards'] as List<dynamic>?)?.map((e) => Flashcard.fromJson(e)).toList() ?? [],
-        quizQuestions: (json['quizQuestions'] as List<dynamic>?)?.map((e) => QuizQuestion.fromJson(e)).toList() ?? [],
+        flashcards: (json['flashcards'] as List<dynamic>?)
+                ?.map((e) => Flashcard.fromJson(e))
+                .toList() ??
+            [],
+        quizQuestions: (json['quizQuestions'] as List<dynamic>?)
+                ?.map((e) => QuizQuestion.fromJson(e))
+                .toList() ??
+            [],
         languageCode: json['languageCode'] ?? 'ar',
         listId: json['listId'],
-        correctlyAnsweredQuestions: Set<String>.from(json['correctlyAnsweredQuestions'] as List<dynamic>? ?? []),
+        correctlyAnsweredQuestions: Set<String>.from(
+            json['correctlyAnsweredQuestions'] as List<dynamic>? ?? []),
       );
     }
   }

@@ -65,7 +65,8 @@ class ResponsiveUtils {
     return EdgeInsets.all(padding);
   }
 
-  static double getResponsiveFontSize(BuildContext context, double baseFontSize) {
+  static double getResponsiveFontSize(
+      BuildContext context, double baseFontSize) {
     if (isMobile(context)) {
       return baseFontSize;
     } else if (isTablet(context)) {

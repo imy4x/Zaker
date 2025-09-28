@@ -28,7 +28,7 @@ class ZakerApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Zaker - ذاكر',
         debugShowCheckedModeBanner: false,
-        
+
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
@@ -38,8 +38,8 @@ class ZakerApp extends StatelessWidget {
           Locale('ar', ''), // Arabic
           Locale('en', ''), // English
         ],
-        locale: const Locale('ar', ''), 
-        
+        locale: const Locale('ar', ''),
+
         // --- تعديل: فرض اتجاه الواجهة من اليمين لليسار للتطبيق بالكامل ---
         builder: (context, child) {
           return Directionality(
@@ -47,9 +47,9 @@ class ZakerApp extends StatelessWidget {
             child: child!,
           );
         },
-        
+
         theme: AppTheme.lightTheme,
-        
+
         home: const HomeScreen(),
       ),
     );

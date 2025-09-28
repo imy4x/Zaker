@@ -7,7 +7,8 @@ import 'package:zaker/constants/app_constants.dart';
 class QuizScreen extends StatefulWidget {
   final List<QuizQuestion> questions;
   final String languageCode;
-  const QuizScreen({super.key, required this.questions, required this.languageCode});
+  const QuizScreen(
+      {super.key, required this.questions, required this.languageCode});
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -40,7 +41,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
       parent: _languageToggleController,
       curve: Curves.easeInOut,
     ));
-    
+
     _questionTransitionController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
@@ -59,7 +60,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
       parent: _questionTransitionController,
       curve: Curves.easeInOut,
     ));
-    
+
     _questionTransitionController.forward();
   }
 
@@ -70,7 +71,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
         _languageToggleController.stop();
       }
       _languageToggleController.dispose();
-      
+
       if (_questionTransitionController.isAnimating) {
         _questionTransitionController.stop();
       }
@@ -85,7 +86,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
     setState(() {
       _currentLanguage = _currentLanguage == 'ar' ? 'en' : 'ar';
     });
-    
+
     if (_currentLanguage == 'en') {
       _languageToggleController.forward();
     } else {
@@ -121,14 +122,14 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
     });
 
     Future.delayed(const Duration(milliseconds: 1200), () {
-      if(mounted) _nextQuestion();
+      if (mounted) _nextQuestion();
     });
   }
 
   void _showResultDialog() {
     final isArabic = _currentLanguage == 'ar';
     final percentage = ((_score / widget.questions.length) * 100).round();
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -138,7 +139,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: percentage >= 70 
+              colors: percentage >= 70
                   ? [Colors.green.shade400, Colors.green.shade600]
                   : percentage >= 50
                       ? [Colors.orange.shade400, Colors.orange.shade600]
@@ -199,7 +200,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
                     style: GoogleFonts.cairo(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
-                      color: percentage >= 70 
+                      color: percentage >= 70
                           ? Colors.green.shade600
                           : percentage >= 50
                               ? Colors.orange.shade600
@@ -214,7 +215,9 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
               percentage >= 70
                   ? (isArabic ? 'أحسنت! نتيجة ممتازة' : 'Excellent! Great job!')
                   : percentage >= 50
-                      ? (isArabic ? 'جيد! يمكنك التحسن' : 'Good! You can improve')
+                      ? (isArabic
+                          ? 'جيد! يمكنك التحسن'
+                          : 'Good! You can improve')
                       : (isArabic ? 'حاول مرة أخرى' : 'Try again'),
               style: GoogleFonts.cairo(
                 fontSize: 14,
@@ -230,8 +233,8 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
             margin: const EdgeInsets.only(top: 8),
             child: ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pop(); 
-                Navigator.of(context).pop(_correctlyAnsweredQuestions); 
+                Navigator.of(context).pop();
+                Navigator.of(context).pop(_correctlyAnsweredQuestions);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
@@ -257,16 +260,22 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
 
   Color _getOptionColor(int index) {
     if (!_answered) return Theme.of(context).colorScheme.surface;
-    if (index == widget.questions[_currentQuestionIndex].correctAnswerIndex) return Colors.green.shade50;
+    if (index == widget.questions[_currentQuestionIndex].correctAnswerIndex)
+      return Colors.green.shade50;
     if (index == _selectedAnswerIndex) return Colors.red.shade50;
     return Theme.of(context).colorScheme.surface;
   }
 
-   Border? _getOptionBorder(int index) {
-    if (!_answered) return Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.3));
-    if (index == widget.questions[_currentQuestionIndex].correctAnswerIndex) return Border.all(color: Colors.green.shade600, width: 2);
-    if (index == _selectedAnswerIndex) return Border.all(color: Colors.red.shade600, width: 2);
-    return Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.3));
+  Border? _getOptionBorder(int index) {
+    if (!_answered)
+      return Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.3));
+    if (index == widget.questions[_currentQuestionIndex].correctAnswerIndex)
+      return Border.all(color: Colors.green.shade600, width: 2);
+    if (index == _selectedAnswerIndex)
+      return Border.all(color: Colors.red.shade600, width: 2);
+    return Border.all(
+        color: Theme.of(context).colorScheme.outline.withOpacity(0.3));
   }
 
   Widget _buildDifficultyBadge(QuizDifficulty difficulty) {
@@ -349,7 +358,9 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
           ),
           const SizedBox(width: 10),
           Text(
-            isArabic ? 'مستوى الصعوبة: $difficultyText' : 'Difficulty: $difficultyText',
+            isArabic
+                ? 'مستوى الصعوبة: $difficultyText'
+                : 'Difficulty: $difficultyText',
             style: GoogleFonts.cairo(
               fontSize: 15,
               fontWeight: FontWeight.bold,
@@ -365,7 +376,8 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final currentQuestion = widget.questions[_currentQuestionIndex];
-    final textDirection = _currentLanguage == 'ar' ? TextDirection.rtl : TextDirection.ltr;
+    final textDirection =
+        _currentLanguage == 'ar' ? TextDirection.rtl : TextDirection.ltr;
     final isArabic = _currentLanguage == 'ar';
 
     return Directionality(
@@ -400,18 +412,25 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
                   onTap: _toggleLanguage,
                   child: Container(
                     margin: const EdgeInsets.only(right: 16),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
                           Theme.of(context).colorScheme.secondary,
-                          Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+                          Theme.of(context)
+                              .colorScheme
+                              .secondary
+                              .withOpacity(0.8),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .secondary
+                              .withOpacity(0.3),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -463,9 +482,9 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
                 children: [
                   // Progress Section
                   _buildProgressSection(),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Question Section
                   Expanded(
                     child: SlideTransition(
@@ -488,7 +507,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
   Widget _buildProgressSection() {
     final isArabic = _currentLanguage == 'ar';
     final progress = (_currentQuestionIndex + 1) / widget.questions.length;
-    
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -509,8 +528,8 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                isArabic 
-                    ? 'السؤال ${_currentQuestionIndex + 1}' 
+                isArabic
+                    ? 'السؤال ${_currentQuestionIndex + 1}'
                     : 'Question ${_currentQuestionIndex + 1}',
                 style: GoogleFonts.cairo(
                   fontSize: 18,
@@ -519,14 +538,15 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primary,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  isArabic 
-                      ? 'من ${widget.questions.length}' 
+                  isArabic
+                      ? 'من ${widget.questions.length}'
                       : 'of ${widget.questions.length}',
                   style: GoogleFonts.cairo(
                     fontSize: 14,
@@ -549,8 +569,8 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
           ),
           const SizedBox(height: 8),
           Text(
-            isArabic 
-                ? '${(progress * 100).toInt()}% من الاختبار مكتمل' 
+            isArabic
+                ? '${(progress * 100).toInt()}% من الاختبار مكتمل'
                 : '${(progress * 100).toInt()}% Complete',
             style: GoogleFonts.cairo(
               fontSize: 12,
@@ -566,7 +586,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
     final isArabic = _currentLanguage == 'ar';
     final questionText = currentQuestion.getQuestion(_currentLanguage);
     final options = currentQuestion.getOptions(_currentLanguage);
-    
+
     return SingleChildScrollView(
       physics: const ClampingScrollPhysics(),
       child: Column(
@@ -575,9 +595,9 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
           Center(
             child: _buildDifficultyBadge(currentQuestion.difficulty),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Question Card
           Container(
             width: double.infinity,
@@ -603,9 +623,11 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
             child: Column(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -642,9 +664,9 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Options
           ...List.generate(options.length, (index) {
             return Container(
@@ -658,15 +680,16 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildOptionCard(int index, String optionText) {
-    final isCorrect = index == widget.questions[_currentQuestionIndex].correctAnswerIndex;
+    final isCorrect =
+        index == widget.questions[_currentQuestionIndex].correctAnswerIndex;
     final isSelected = index == _selectedAnswerIndex;
     final isAnswered = _answered;
-    
+
     Color cardColor;
     Color borderColor;
     Color textColor = Theme.of(context).colorScheme.onSurface;
     IconData? icon;
-    
+
     if (!isAnswered) {
       cardColor = Theme.of(context).colorScheme.surface;
       borderColor = Theme.of(context).colorScheme.outline.withOpacity(0.3);
@@ -685,7 +708,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
       borderColor = Theme.of(context).colorScheme.outline.withOpacity(0.2);
       textColor = Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
     }
-    
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -721,7 +744,10 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
                   decoration: BoxDecoration(
                     color: isAnswered && (isCorrect || isSelected)
                         ? borderColor
-                        : Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                        : Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Center(

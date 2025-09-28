@@ -32,7 +32,8 @@ class LoadingView extends StatelessWidget {
                     const SizedBox(height: 30),
                     Text(
                       'لحظات من فضلك...',
-                      style: theme.textTheme.displayLarge?.copyWith(fontSize: 28),
+                      style:
+                          theme.textTheme.displayLarge?.copyWith(fontSize: 28),
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -57,9 +58,11 @@ class LoadingView extends StatelessWidget {
                     Chip(
                       label: Text(
                         'يتم استخدام المفتاح رقم ${provider.currentApiKeyIndex + 1}',
-                        style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary),
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(color: theme.colorScheme.primary),
                       ),
-                      backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                      backgroundColor:
+                          theme.colorScheme.primary.withOpacity(0.1),
                       side: BorderSide.none,
                     ),
                   ],

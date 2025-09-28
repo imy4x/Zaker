@@ -23,10 +23,10 @@ class QuizQuestion {
     required List<String> options,
     required this.correctAnswerIndex,
     required this.difficulty,
-  }) : questionAr = question,
-       optionsAr = options,
-       questionEn = question, // Fallback to same content
-       optionsEn = options;
+  })  : questionAr = question,
+        optionsAr = options,
+        questionEn = question, // Fallback to same content
+        optionsEn = options;
 
   // Get content based on language
   String getQuestion(String languageCode) {
@@ -44,11 +44,16 @@ class QuizQuestion {
   factory QuizQuestion.fromJson(Map<String, dynamic> json) {
     QuizDifficulty parseDifficulty(String? diff) {
       switch (diff?.toLowerCase()) {
-        case 'easy': return QuizDifficulty.easy;
-        case 'medium': return QuizDifficulty.medium;
-        case 'hard': return QuizDifficulty.hard;
-        case 'very_hard': return QuizDifficulty.veryHard;
-        default: return QuizDifficulty.medium;
+        case 'easy':
+          return QuizDifficulty.easy;
+        case 'medium':
+          return QuizDifficulty.medium;
+        case 'hard':
+          return QuizDifficulty.hard;
+        case 'very_hard':
+          return QuizDifficulty.veryHard;
+        default:
+          return QuizDifficulty.medium;
       }
     }
 
@@ -72,7 +77,7 @@ class QuizQuestion {
       );
     }
   }
-  
+
   Map<String, dynamic> toJson() {
     return {
       'questionAr': questionAr,

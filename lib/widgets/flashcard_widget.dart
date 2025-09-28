@@ -13,13 +13,14 @@ class FlashcardWidget extends StatefulWidget {
   State<FlashcardWidget> createState() => _FlashcardWidgetState();
 }
 
-class _FlashcardWidgetState extends State<FlashcardWidget> with TickerProviderStateMixin {
+class _FlashcardWidgetState extends State<FlashcardWidget>
+    with TickerProviderStateMixin {
   final CardSwiperController _controller = CardSwiperController();
   int _currentIndex = 0;
   String _currentLanguage = 'ar'; // Default to Arabic
   late AnimationController _languageToggleController;
   late Animation<double> _languageToggleAnimation;
-  
+
   @override
   void initState() {
     super.initState();
@@ -58,14 +59,14 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with TickerProviderSt
     setState(() {
       _currentLanguage = _currentLanguage == 'ar' ? 'en' : 'ar';
     });
-    
+
     if (_currentLanguage == 'en') {
       _languageToggleController.forward();
     } else {
       _languageToggleController.reverse();
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     if (widget.flashcards.isEmpty) {
@@ -76,7 +77,8 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with TickerProviderSt
       children: [
         // Card counter and language toggle
         Container(
-          margin: EdgeInsets.only(bottom: ResponsiveUtils.getResponsiveSpacing(context) * 2),
+          margin: EdgeInsets.only(
+              bottom: ResponsiveUtils.getResponsiveSpacing(context) * 2),
           padding: EdgeInsets.symmetric(
             horizontal: ResponsiveUtils.getResponsivePadding(context),
             vertical: 12,
@@ -111,7 +113,8 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with TickerProviderSt
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(12),
@@ -119,24 +122,24 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with TickerProviderSt
                     child: Text(
                       '${_currentIndex + 1}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        fontSize: 13,
-                      ),
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            fontSize: 13,
+                          ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Text(
                     'من ${widget.flashcards.length} بطاقة',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.primary,
-                      fontSize: 14,
-                    ),
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: 14,
+                        ),
                   ),
                 ],
               ),
-              
+
               // Language toggle button
               AnimatedBuilder(
                 animation: _languageToggleAnimation,
@@ -144,18 +147,25 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with TickerProviderSt
                   return GestureDetector(
                     onTap: _toggleLanguage,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
                             Theme.of(context).colorScheme.secondary,
-                            Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+                            Theme.of(context)
+                                .colorScheme
+                                .secondary
+                                .withOpacity(0.8),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .secondary
+                                .withOpacity(0.3),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -238,7 +248,10 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with TickerProviderSt
                         ? LinearGradient(
                             colors: [
                               Theme.of(context).colorScheme.secondary,
-                              Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+                              Theme.of(context)
+                                  .colorScheme
+                                  .secondary
+                                  .withOpacity(0.8),
                             ],
                           )
                         : null,
@@ -247,7 +260,10 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with TickerProviderSt
                     boxShadow: _currentIndex > 0
                         ? [
                             BoxShadow(
-                              color: Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .secondary
+                                  .withOpacity(0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
@@ -259,16 +275,21 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with TickerProviderSt
                     label: Text(
                       'السابق',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
-                    onPressed: _currentIndex > 0 ? () => _navigateToCard(_currentIndex - 1) : null,
+                    onPressed: _currentIndex > 0
+                        ? () => _navigateToCard(_currentIndex - 1)
+                        : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       elevation: 0,
-                      foregroundColor: _currentIndex > 0 ? Colors.white : Colors.grey.shade600,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      foregroundColor: _currentIndex > 0
+                          ? Colors.white
+                          : Colors.grey.shade600,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -276,9 +297,9 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with TickerProviderSt
                   ),
                 ),
               ),
-              
+
               const SizedBox(width: 20),
-              
+
               // Next button
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
@@ -289,16 +310,24 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with TickerProviderSt
                         ? LinearGradient(
                             colors: [
                               Theme.of(context).colorScheme.primary,
-                              Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                              Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withOpacity(0.8),
                             ],
                           )
                         : null,
-                    color: _currentIndex == widget.flashcards.length - 1 ? Colors.grey.shade300 : null,
+                    color: _currentIndex == widget.flashcards.length - 1
+                        ? Colors.grey.shade300
+                        : null,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: _currentIndex < widget.flashcards.length - 1
                         ? [
                             BoxShadow(
-                              color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withOpacity(0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
@@ -310,20 +339,22 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with TickerProviderSt
                     label: Text(
                       'التالي',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
-                    onPressed: _currentIndex < widget.flashcards.length - 1 
-                        ? () => _navigateToCard(_currentIndex + 1) 
+                    onPressed: _currentIndex < widget.flashcards.length - 1
+                        ? () => _navigateToCard(_currentIndex + 1)
                         : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       elevation: 0,
-                      foregroundColor: _currentIndex < widget.flashcards.length - 1 
-                          ? Colors.white 
-                          : Colors.grey.shade600,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      foregroundColor:
+                          _currentIndex < widget.flashcards.length - 1
+                              ? Colors.white
+                              : Colors.grey.shade600,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -342,14 +373,16 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with TickerProviderSt
 class _FlashcardContent extends StatefulWidget {
   final Flashcard flashcard;
   final String languageCode;
-  const _FlashcardContent({super.key, required this.flashcard, required this.languageCode});
+  const _FlashcardContent(
+      {super.key, required this.flashcard, required this.languageCode});
 
   @override
   State<_FlashcardContent> createState() => _FlashcardContentState();
 }
 
 // --- تعديل: تم إعادة كتابة آلية القلب بالكامل لتكون أكثر استقراراً ---
-class _FlashcardContentState extends State<_FlashcardContent> with SingleTickerProviderStateMixin {
+class _FlashcardContentState extends State<_FlashcardContent>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
 
   @override
@@ -421,13 +454,13 @@ class _FlashcardContentState extends State<_FlashcardContent> with SingleTickerP
 
   Widget _buildCardSide({required String label, required String text}) {
     final isQuestion = label == "السؤال" || label == "Question";
-    
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isQuestion 
+          colors: isQuestion
               ? [
                   Colors.white,
                   const Color(0xFFF8FAFC),
@@ -439,16 +472,17 @@ class _FlashcardContentState extends State<_FlashcardContent> with SingleTickerP
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isQuestion 
+          color: isQuestion
               ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
               : Theme.of(context).colorScheme.secondary.withOpacity(0.4),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: (isQuestion 
-                ? Theme.of(context).colorScheme.primary 
-                : Theme.of(context).colorScheme.secondary).withOpacity(0.1),
+            color: (isQuestion
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.secondary)
+                .withOpacity(0.1),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -463,14 +497,26 @@ class _FlashcardContentState extends State<_FlashcardContent> with SingleTickerP
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: isQuestion 
-                      ? [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withOpacity(0.8)]
-                      : [Theme.of(context).colorScheme.secondary, Theme.of(context).colorScheme.secondary.withOpacity(0.8)],
+                  colors: isQuestion
+                      ? [
+                          Theme.of(context).colorScheme.primary,
+                          Theme.of(context).colorScheme.primary.withOpacity(0.8)
+                        ]
+                      : [
+                          Theme.of(context).colorScheme.secondary,
+                          Theme.of(context)
+                              .colorScheme
+                              .secondary
+                              .withOpacity(0.8)
+                        ],
                 ),
                 borderRadius: BorderRadius.circular(25),
                 boxShadow: [
                   BoxShadow(
-                    color: (isQuestion ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.secondary).withOpacity(0.3),
+                    color: (isQuestion
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.secondary)
+                        .withOpacity(0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -480,7 +526,9 @@ class _FlashcardContentState extends State<_FlashcardContent> with SingleTickerP
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    isQuestion ? Icons.help_outline_rounded : Icons.lightbulb_outline_rounded,
+                    isQuestion
+                        ? Icons.help_outline_rounded
+                        : Icons.lightbulb_outline_rounded,
                     color: Colors.white,
                     size: 20,
                   ),
@@ -496,9 +544,9 @@ class _FlashcardContentState extends State<_FlashcardContent> with SingleTickerP
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Content area
             Expanded(
               child: Center(
@@ -510,14 +558,17 @@ class _FlashcardContentState extends State<_FlashcardContent> with SingleTickerP
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Footer hint
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceVariant
+                    .withOpacity(0.5),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
@@ -561,33 +612,34 @@ class _UnifiedTextWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     // Clean and normalize the text
     String cleanText = text.trim();
-    
+
     // Check if text contains numbered lists
     if (cleanText.contains(RegExp(r'^\d+[-\.)\s]', multiLine: true))) {
       return _buildNumberedList(context);
     }
-    
+
     // Check if text contains bullet points
     if (cleanText.contains(RegExp(r'^[•\-\*]\s', multiLine: true))) {
       return _buildBulletList(context);
     }
-    
+
     // Regular paragraph text
     return _buildParagraph(context);
   }
 
   Widget _buildNumberedList(BuildContext context) {
-    final lines = text.split('\n').where((line) => line.trim().isNotEmpty).toList();
+    final lines =
+        text.split('\n').where((line) => line.trim().isNotEmpty).toList();
     final items = <Widget>[];
-    
+
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
       final numberedMatch = RegExp(r'^(\d+)[-\.)\s]+(.*)').firstMatch(line);
-      
+
       if (numberedMatch != null) {
         final number = numberedMatch.group(1)!;
         final content = numberedMatch.group(2)!.trim();
-        
+
         items.add(_buildListItem(
           context: context,
           number: number,
@@ -599,7 +651,7 @@ class _UnifiedTextWidget extends StatelessWidget {
         items.add(_buildRegularLine(context, line));
       }
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: items,
@@ -607,13 +659,14 @@ class _UnifiedTextWidget extends StatelessWidget {
   }
 
   Widget _buildBulletList(BuildContext context) {
-    final lines = text.split('\n').where((line) => line.trim().isNotEmpty).toList();
+    final lines =
+        text.split('\n').where((line) => line.trim().isNotEmpty).toList();
     final items = <Widget>[];
-    
+
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
       final bulletMatch = RegExp(r'^[•\-\*]\s+(.*)').firstMatch(line);
-      
+
       if (bulletMatch != null) {
         final content = bulletMatch.group(1)!.trim();
         items.add(_buildBulletItem(
@@ -625,7 +678,7 @@ class _UnifiedTextWidget extends StatelessWidget {
         items.add(_buildRegularLine(context, line));
       }
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: items,
@@ -634,22 +687,24 @@ class _UnifiedTextWidget extends StatelessWidget {
 
   Widget _buildParagraph(BuildContext context) {
     final hasArabic = text.contains(RegExp(r'[\u0600-\u06FF]'));
-    final paragraphs = text.split('\n\n').where((p) => p.trim().isNotEmpty).toList();
-    
+    final paragraphs =
+        text.split('\n\n').where((p) => p.trim().isNotEmpty).toList();
+
     if (paragraphs.length > 1) {
       return Column(
         children: paragraphs.asMap().entries.map((entry) {
           final index = entry.key;
           final paragraph = entry.value.trim();
-          
+
           return Container(
-            margin: EdgeInsets.only(bottom: index < paragraphs.length - 1 ? 16 : 0),
+            margin:
+                EdgeInsets.only(bottom: index < paragraphs.length - 1 ? 16 : 0),
             child: _buildTextBlock(context, paragraph, hasArabic),
           );
         }).toList(),
       );
     }
-    
+
     return _buildTextBlock(context, text, hasArabic);
   }
 
@@ -657,12 +712,12 @@ class _UnifiedTextWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isAnswer 
+        color: isAnswer
             ? Theme.of(context).colorScheme.secondary.withOpacity(0.05)
             : Theme.of(context).colorScheme.primary.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isAnswer 
+          color: isAnswer
               ? Theme.of(context).colorScheme.secondary.withOpacity(0.2)
               : Theme.of(context).colorScheme.primary.withOpacity(0.2),
           width: 1,
@@ -683,28 +738,31 @@ class _UnifiedTextWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildListItem({required BuildContext context, required String number, required String content, required bool isLast}) {
+  Widget _buildListItem(
+      {required BuildContext context,
+      required String number,
+      required String content,
+      required bool isLast}) {
     final hasArabic = content.contains(RegExp(r'[\u0600-\u06FF]'));
-    
+
     return Container(
       margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isAnswer 
-            ? const Color(0xFFF0F9FF)
-            : const Color(0xFFF8FAFC),
+        color: isAnswer ? const Color(0xFFF0F9FF) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isAnswer 
+          color: isAnswer
               ? Theme.of(context).colorScheme.secondary.withOpacity(0.3)
               : Theme.of(context).colorScheme.primary.withOpacity(0.3),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: (isAnswer 
-                ? Theme.of(context).colorScheme.secondary 
-                : Theme.of(context).colorScheme.primary).withOpacity(0.06),
+            color: (isAnswer
+                    ? Theme.of(context).colorScheme.secondary
+                    : Theme.of(context).colorScheme.primary)
+                .withOpacity(0.06),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -718,14 +776,23 @@ class _UnifiedTextWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: isAnswer 
-                    ? [Theme.of(context).colorScheme.secondary, Theme.of(context).colorScheme.secondary.withOpacity(0.8)]
-                    : [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withOpacity(0.8)],
+                colors: isAnswer
+                    ? [
+                        Theme.of(context).colorScheme.secondary,
+                        Theme.of(context).colorScheme.secondary.withOpacity(0.8)
+                      ]
+                    : [
+                        Theme.of(context).colorScheme.primary,
+                        Theme.of(context).colorScheme.primary.withOpacity(0.8)
+                      ],
               ),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: (isAnswer ? Theme.of(context).colorScheme.secondary : Theme.of(context).colorScheme.primary).withOpacity(0.3),
+                  color: (isAnswer
+                          ? Theme.of(context).colorScheme.secondary
+                          : Theme.of(context).colorScheme.primary)
+                      .withOpacity(0.3),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -753,7 +820,8 @@ class _UnifiedTextWidget extends StatelessWidget {
                   height: 1.7,
                   letterSpacing: 0.2,
                 ),
-                textDirection: hasArabic ? TextDirection.rtl : TextDirection.ltr,
+                textDirection:
+                    hasArabic ? TextDirection.rtl : TextDirection.ltr,
               ),
             ),
           ),
@@ -762,9 +830,12 @@ class _UnifiedTextWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildBulletItem({required BuildContext context, required String content, required bool isLast}) {
+  Widget _buildBulletItem(
+      {required BuildContext context,
+      required String content,
+      required bool isLast}) {
     final hasArabic = content.contains(RegExp(r'[\u0600-\u06FF]'));
-    
+
     return Container(
       margin: EdgeInsets.only(bottom: isLast ? 0 : 10),
       child: Row(
@@ -776,7 +847,7 @@ class _UnifiedTextWidget extends StatelessWidget {
             width: 8,
             height: 8,
             decoration: BoxDecoration(
-              color: isAnswer 
+              color: isAnswer
                   ? Theme.of(context).colorScheme.secondary
                   : Theme.of(context).colorScheme.primary,
               shape: BoxShape.circle,
@@ -802,9 +873,9 @@ class _UnifiedTextWidget extends StatelessWidget {
 
   Widget _buildRegularLine(BuildContext context, String line) {
     if (line.trim().isEmpty) return const SizedBox(height: 12);
-    
+
     final hasArabic = line.contains(RegExp(r'[\u0600-\u06FF]'));
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(

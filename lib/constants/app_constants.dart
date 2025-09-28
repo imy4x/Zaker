@@ -31,7 +31,6 @@ extension AnalysisDepthExtension on AnalysisDepth {
   }
 }
 
-
 // ثانياً: مستويات صعوبة الاختبار
 enum QuizDifficulty {
   easy,
@@ -41,15 +40,19 @@ enum QuizDifficulty {
   mixed, // خيار جديد لمزيج من كل المستويات
 }
 
-
 extension QuizDifficultyExtension on QuizDifficulty {
   String get nameAr {
     switch (this) {
-      case QuizDifficulty.easy: return 'سهل';
-      case QuizDifficulty.medium: return 'متوسط';
-      case QuizDifficulty.hard: return 'صعب';
-      case QuizDifficulty.veryHard: return 'صعب جداً';
-      case QuizDifficulty.mixed: return 'متنوع';
+      case QuizDifficulty.easy:
+        return 'سهل';
+      case QuizDifficulty.medium:
+        return 'متوسط';
+      case QuizDifficulty.hard:
+        return 'صعب';
+      case QuizDifficulty.veryHard:
+        return 'صعب جداً';
+      case QuizDifficulty.mixed:
+        return 'متنوع';
     }
   }
 }

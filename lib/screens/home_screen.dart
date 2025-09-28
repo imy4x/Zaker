@@ -42,7 +42,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (provider.state == AppState.success && newSession != null) {
       // Show warning if some components failed
       if (provider.warningMessage.isNotEmpty) {
-        AppDialogs.showErrorDialog(context, provider.warningMessage, title: 'تنبيه');
+        AppDialogs.showErrorDialog(context, provider.warningMessage,
+            title: 'تنبيه');
       }
       provider.resetState();
       Navigator.push(
@@ -55,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
       provider.resetState();
     }
   }
-  
+
   void _showCreateOrRenameListDialog({StudyList? existingList}) {
     showDialog(
       context: context,
@@ -70,7 +71,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Consumer<StudyProvider>(
@@ -79,7 +79,8 @@ class _HomeScreenState extends State<HomeScreen> {
           appBar: AppBar(
             title: const Text('جلساتي'),
             actions: [
-              if (provider.state != AppState.loading) // Only show when not analyzing
+              if (provider.state !=
+                  AppState.loading) // Only show when not analyzing
                 IconButton(
                   icon: const Icon(Icons.create_new_folder_outlined),
                   onPressed: _showCreateOrRenameListDialog,
@@ -87,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
             ],
           ),
-          body: provider.state == AppState.loading 
+          body: provider.state == AppState.loading
               ? const LoadingView()
               : _buildMainContent(provider),
           floatingActionButton: provider.state == AppState.loading
@@ -105,7 +106,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildMainContent(StudyProvider provider) {
     final lists = provider.lists;
     final sessions = provider.sessions;
-    final uncategorizedSessions = sessions.where((s) => s.listId == null).toList();
+    final uncategorizedSessions =
+        sessions.where((s) => s.listId == null).toList();
 
     if (lists.isEmpty && sessions.isEmpty) return _buildEmptyState();
 
@@ -119,19 +121,22 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       children: [
         ...lists.map((list) {
-          final listSessions = sessions.where((s) => s.listId == list.id).toList();
+          final listSessions =
+              sessions.where((s) => s.listId == list.id).toList();
           return _buildListTile(provider, list, listSessions);
         }),
-        if(uncategorizedSessions.isNotEmpty)
+        if (uncategorizedSessions.isNotEmpty)
           _buildListTile(provider, null, uncategorizedSessions),
       ],
     );
   }
 
-  Widget _buildListTile(StudyProvider provider, StudyList? list, List<StudySession> listSessions) {
+  Widget _buildListTile(StudyProvider provider, StudyList? list,
+      List<StudySession> listSessions) {
     final bool isUncategorized = list == null;
     final String title = isUncategorized ? 'غير مصنف' : list.name;
-    final IconData icon = isUncategorized ? Icons.inventory_2_outlined : list.icon;
+    final IconData icon =
+        isUncategorized ? Icons.inventory_2_outlined : list.icon;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -139,89 +144,107 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ExpansionTile(
         key: PageStorageKey(list?.id ?? 'uncategorized'),
         leading: Icon(icon, color: isUncategorized ? Colors.grey : list.color),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         subtitle: Text('${listSessions.length} جلسات'),
         tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         childrenPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        shape: const RoundedRectangleBorder(side: BorderSide(color: Colors.transparent, width: 0)),
-        collapsedShape: const RoundedRectangleBorder(side: BorderSide(color: Colors.transparent, width: 0)),
-        trailing: isUncategorized ? null : PopupMenuButton<String>(
-          onSelected: (value) async {
-            if (value == 'rename') {
-              _showCreateOrRenameListDialog(existingList: list);
-            } else if (value == 'delete') {
-              final confirm = await AppDialogs.showConfirmDialog(
-                context, 
-                title: 'تأكيد الحذف',
-                content: 'هل أنت متأكد من حذف قائمة "${list!.name}"؟ سيتم نقل الجلسات التابعة لها إلى "غير مصنف".'
-              );
-              if (confirm) {
-                provider.deleteList(list.id);
-              }
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(value: 'rename', child: Text('إعادة تسمية')),
-            const PopupMenuItem(value: 'delete', child: Text('حذف')),
-          ],
-        ),
+        shape: const RoundedRectangleBorder(
+            side: BorderSide(color: Colors.transparent, width: 0)),
+        collapsedShape: const RoundedRectangleBorder(
+            side: BorderSide(color: Colors.transparent, width: 0)),
+        trailing: isUncategorized
+            ? null
+            : PopupMenuButton<String>(
+                onSelected: (value) async {
+                  if (value == 'rename') {
+                    _showCreateOrRenameListDialog(existingList: list);
+                  } else if (value == 'delete') {
+                    final confirm = await AppDialogs.showConfirmDialog(context,
+                        title: 'تأكيد الحذف',
+                        content:
+                            'هل أنت متأكد من حذف قائمة "${list!.name}"؟ سيتم نقل الجلسات التابعة لها إلى "غير مصنف".');
+                    if (confirm) {
+                      provider.deleteList(list.id);
+                    }
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                      value: 'rename', child: Text('إعادة تسمية')),
+                  const PopupMenuItem(value: 'delete', child: Text('حذف')),
+                ],
+              ),
         initiallyExpanded: true,
-        children: listSessions.map((session) => SessionListItem(
-          session: session,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => StudyMaterialScreen(session: session))),
-          onDelete: () async {
-            final confirm = await AppDialogs.showConfirmDialog(context, title: 'تأكيد الحذف', content: 'هل أنت متأكد من حذف هذه الجلسة؟');
-            if (confirm) await provider.deleteSession(session.id);
-          },
-          onMove: () async {
-             final selectedListId = await _showMoveDialog(provider.lists, session.listId);
-             if (selectedListId != 'NO_ACTION') {
-                await provider.moveSessionToList(session.id, selectedListId);
-             }
-          },
-          onRename: () => _showRenameSessionDialog(session),
-        )).toList(),
+        children: listSessions
+            .map((session) => SessionListItem(
+                  session: session,
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) =>
+                              StudyMaterialScreen(session: session))),
+                  onDelete: () async {
+                    final confirm = await AppDialogs.showConfirmDialog(context,
+                        title: 'تأكيد الحذف',
+                        content: 'هل أنت متأكد من حذف هذه الجلسة؟');
+                    if (confirm) await provider.deleteSession(session.id);
+                  },
+                  onMove: () async {
+                    final selectedListId =
+                        await _showMoveDialog(provider.lists, session.listId);
+                    if (selectedListId != 'NO_ACTION') {
+                      await provider.moveSessionToList(
+                          session.id, selectedListId);
+                    }
+                  },
+                  onRename: () => _showRenameSessionDialog(session),
+                ))
+            .toList(),
       ),
     );
   }
 
-  Future<String?> _showMoveDialog(List<StudyList> lists, String? currentListId) async {
+  Future<String?> _showMoveDialog(
+      List<StudyList> lists, String? currentListId) async {
     return showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('نقل إلى...'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              RadioListTile<String?>(
-                title: const Text('غير مصنف'),
-                value: null,
-                groupValue: currentListId,
-                onChanged: (val) => Navigator.of(context).pop(val),
+        context: context,
+        builder: (context) => AlertDialog(
+              title: const Text('نقل إلى...'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    RadioListTile<String?>(
+                      title: const Text('غير مصنف'),
+                      value: null,
+                      groupValue: currentListId,
+                      onChanged: (val) => Navigator.of(context).pop(val),
+                    ),
+                    const Divider(),
+                    ...lists.map((list) => RadioListTile<String?>(
+                          title: Text(list.name),
+                          value: list.id,
+                          groupValue: currentListId,
+                          onChanged: (val) => Navigator.of(context).pop(val),
+                        )),
+                  ],
+                ),
               ),
-              const Divider(),
-              ...lists.map((list) => RadioListTile<String?>(
-                title: Text(list.name),
-                value: list.id,
-                groupValue: currentListId,
-                onChanged: (val) => Navigator.of(context).pop(val),
-              )),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop('NO_ACTION'), 
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
-            ),
-            child: const Text('إلغاء'),
-          ),
-        ],
-      )
-    );
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop('NO_ACTION'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.8),
+                  ),
+                  child: const Text('إلغاء'),
+                ),
+              ],
+            ));
   }
 
   Widget _buildEmptyState() {
@@ -231,9 +254,14 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Lottie.asset('assets/animations/empty.json', width: 250, height: 250),
           const SizedBox(height: 20),
-          Text('لا توجد جلسات مذاكرة بعد', style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 22)),
+          Text('لا توجد جلسات مذاكرة بعد',
+              style: Theme.of(context)
+                  .textTheme
+                  .displayLarge
+                  ?.copyWith(fontSize: 22)),
           const SizedBox(height: 8),
-          Text('اضغط على زر الإضافة لبدء المذاكرة', style: Theme.of(context).textTheme.bodyMedium),
+          Text('اضغط على زر الإضافة لبدء المذاكرة',
+              style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),
     );
@@ -250,19 +278,19 @@ class _RenameSessionDialog extends StatefulWidget {
 
 class _RenameSessionDialogState extends State<_RenameSessionDialog> {
   late final TextEditingController _controller;
-  
+
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.session.title);
   }
-  
+
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -276,14 +304,17 @@ class _RenameSessionDialogState extends State<_RenameSessionDialog> {
         TextButton(
           onPressed: () => Navigator.pop(context),
           style: TextButton.styleFrom(
-            foregroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+            foregroundColor:
+                Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
           ),
           child: const Text('إلغاء'),
         ),
         ElevatedButton(
           onPressed: () {
             if (_controller.text.isNotEmpty) {
-              context.read<StudyProvider>().renameSession(widget.session.id, _controller.text);
+              context
+                  .read<StudyProvider>()
+                  .renameSession(widget.session.id, _controller.text);
               Navigator.pop(context);
             }
           },
@@ -304,7 +335,7 @@ class _CreateListDialog extends StatefulWidget {
 
 class _CreateListDialogState extends State<_CreateListDialog> {
   late final TextEditingController _controller;
-  
+
   @override
   void initState() {
     super.initState();
@@ -312,13 +343,13 @@ class _CreateListDialogState extends State<_CreateListDialog> {
       text: widget.existingList?.name ?? '',
     );
   }
-  
+
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.existingList != null;
@@ -349,7 +380,9 @@ class _CreateListDialogState extends State<_CreateListDialog> {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  isEditing ? Icons.edit_rounded : Icons.create_new_folder_rounded,
+                  isEditing
+                      ? Icons.edit_rounded
+                      : Icons.create_new_folder_rounded,
                   color: Theme.of(context).colorScheme.primary,
                   size: 48,
                 ),
@@ -358,9 +391,9 @@ class _CreateListDialogState extends State<_CreateListDialog> {
               Text(
                 isEditing ? 'إعادة تسمية القائمة' : 'إنشاء قائمة جديدة',
                 style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -368,13 +401,15 @@ class _CreateListDialogState extends State<_CreateListDialog> {
                 controller: _controller,
                 decoration: InputDecoration(
                   labelText: 'اسم القائمة',
-                  prefixIcon: Icon(Icons.folder_outlined, color: Theme.of(context).colorScheme.primary),
+                  prefixIcon: Icon(Icons.folder_outlined,
+                      color: Theme.of(context).colorScheme.primary),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+                    borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary, width: 2),
                   ),
                 ),
                 autofocus: true,
@@ -383,7 +418,8 @@ class _CreateListDialogState extends State<_CreateListDialog> {
                   if (_controller.text.isNotEmpty) {
                     final provider = context.read<StudyProvider>();
                     if (isEditing) {
-                      provider.renameList(widget.existingList!.id, _controller.text);
+                      provider.renameList(
+                          widget.existingList!.id, _controller.text);
                     } else {
                       provider.createList(_controller.text);
                     }
@@ -398,8 +434,12 @@ class _CreateListDialogState extends State<_CreateListDialog> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
-                        side: BorderSide(color: Theme.of(context).colorScheme.outline),
+                        foregroundColor: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.8),
+                        side: BorderSide(
+                            color: Theme.of(context).colorScheme.outline),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: Theme.of(context).colorScheme.surface,
                         shape: RoundedRectangleBorder(
@@ -409,8 +449,11 @@ class _CreateListDialogState extends State<_CreateListDialog> {
                       child: Text(
                         'إلغاء',
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
-                        ),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withOpacity(0.8),
+                            ),
                       ),
                     ),
                   ),
@@ -421,7 +464,8 @@ class _CreateListDialogState extends State<_CreateListDialog> {
                         if (_controller.text.isNotEmpty) {
                           final provider = context.read<StudyProvider>();
                           if (isEditing) {
-                            provider.renameList(widget.existingList!.id, _controller.text);
+                            provider.renameList(
+                                widget.existingList!.id, _controller.text);
                           } else {
                             provider.createList(_controller.text);
                           }
@@ -483,13 +527,15 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
     _notesController.dispose();
     super.dispose();
   }
-  
+
   Future<void> _pickFiles() async {
     final provider = context.read<StudyProvider>();
     final remaining = provider.usageService.getRemainingUses();
 
     if (remaining - _selectedFiles.length <= 0) {
-      if(mounted) AppDialogs.showErrorDialog(context, 'لقد استهلكت رصيدك بالكامل لهذا اليوم.');
+      if (mounted)
+        AppDialogs.showErrorDialog(
+            context, 'لقد استهلكت رصيدك بالكامل لهذا اليوم.');
       return;
     }
     final result = await FilePicker.platform.pickFiles(
@@ -500,7 +546,9 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
     if (result != null) {
       final totalSelection = _selectedFiles.length + result.files.length;
       if (totalSelection > remaining) {
-         if(mounted) AppDialogs.showErrorDialog(context, 'لا يمكنك اختيار أكثر من $remaining ملفات.');
+        if (mounted)
+          AppDialogs.showErrorDialog(
+              context, 'لا يمكنك اختيار أكثر من $remaining ملفات.');
       } else {
         setState(() {
           _selectedFiles.addAll(result.files);
@@ -542,7 +590,8 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -583,15 +632,18 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                       Text(
                         title,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         subtitle,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                        ),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withOpacity(0.7),
+                            ),
                       ),
                     ],
                   ),
@@ -617,7 +669,8 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
             width: double.infinity,
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+              color:
+                  Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
@@ -629,21 +682,28 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                 Icon(
                   Icons.cloud_upload_outlined,
                   size: 48,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   'لم يتم اختيار أي ملفات بعد',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                  ),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.6),
+                      ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'اختر ملفات PDF أو صور',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-                  ),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.5),
+                      ),
                 ),
               ],
             ),
@@ -654,10 +714,14 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
               final index = entry.key;
               final file = entry.value;
               return Container(
-                margin: EdgeInsets.only(bottom: index < _selectedFiles.length - 1 ? 8 : 0),
+                margin: EdgeInsets.only(
+                    bottom: index < _selectedFiles.length - 1 ? 8 : 0),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surfaceVariant
+                      .withOpacity(0.3),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -665,7 +729,10 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
@@ -681,30 +748,43 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                         children: [
                           Text(
                             file.name,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
                             overflow: TextOverflow.ellipsis,
                           ),
                           if (file.size != null)
                             Text(
                               _formatFileSize(file.size!),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withOpacity(0.6),
+                                  ),
                             ),
                         ],
                       ),
                     ),
                     IconButton(
-                      onPressed: () => setState(() => _selectedFiles.removeAt(index)),
+                      onPressed: () =>
+                          setState(() => _selectedFiles.removeAt(index)),
                       icon: Icon(
                         Icons.close_rounded,
                         size: 18,
                         color: Theme.of(context).colorScheme.error,
                       ),
                       style: IconButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.error.withOpacity(0.1),
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .error
+                            .withOpacity(0.1),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -716,9 +796,7 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
               );
             }).toList(),
           ),
-        
         const SizedBox(height: 16),
-        
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
@@ -729,7 +807,8 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
               style: const TextStyle(fontSize: 16),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              backgroundColor:
+                  Theme.of(context).colorScheme.primary.withOpacity(0.1),
               foregroundColor: Theme.of(context).colorScheme.primary,
               elevation: 0,
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -768,9 +847,7 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
           ),
           validator: (value) => value!.isEmpty ? 'العنوان مطلوب' : null,
         ),
-        
         const SizedBox(height: 16),
-        
         TextFormField(
           controller: _notesController,
           decoration: InputDecoration(
@@ -803,8 +880,8 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
         Text(
           'لغة التحليل',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+                fontWeight: FontWeight.w600,
+              ),
         ),
         const SizedBox(height: 12),
         Row(
@@ -818,15 +895,15 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
             ),
           ],
         ),
-        
+
         const SizedBox(height: 24),
-        
+
         // Analysis Depth
         Text(
           'عمق التحليل',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+                fontWeight: FontWeight.w600,
+              ),
         ),
         const SizedBox(height: 12),
         Column(
@@ -848,13 +925,13 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.1) 
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
               : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected 
-                ? Theme.of(context).colorScheme.primary 
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
                 : Theme.of(context).colorScheme.outline.withOpacity(0.2),
             width: isSelected ? 2 : 1,
           ),
@@ -863,8 +940,8 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
           children: [
             Icon(
               icon,
-              color: isSelected 
-                  ? Theme.of(context).colorScheme.primary 
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
                   : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
               size: 20,
             ),
@@ -873,11 +950,12 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
               child: Text(
                 language,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: isSelected 
-                      ? Theme.of(context).colorScheme.primary 
-                      : Theme.of(context).colorScheme.onSurface,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                ),
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.onSurface,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.normal,
+                    ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -900,13 +978,13 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.1) 
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
               : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected 
-                ? Theme.of(context).colorScheme.primary 
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
                 : Theme.of(context).colorScheme.outline.withOpacity(0.2),
             width: isSelected ? 2 : 1,
           ),
@@ -916,14 +994,16 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: isSelected 
-                    ? Theme.of(context).colorScheme.primary 
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
                     : Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 _getDepthIcon(depth),
-                color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                color: isSelected
+                    ? Colors.white
+                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                 size: 16,
               ),
             ),
@@ -935,18 +1015,22 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                   Text(
                     depth.nameAr,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                      color: isSelected 
-                          ? Theme.of(context).colorScheme.primary 
-                          : Theme.of(context).colorScheme.onSurface,
-                    ),
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w500,
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.onSurface,
+                        ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     depth.descriptionAr,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                    ),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.7),
+                        ),
                   ),
                 ],
               ),
@@ -969,13 +1053,19 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            _selectedFiles.length <= remaining ? Colors.green.shade50 : Colors.red.shade50,
-            _selectedFiles.length <= remaining ? Colors.green.shade100 : Colors.red.shade100,
+            _selectedFiles.length <= remaining
+                ? Colors.green.shade50
+                : Colors.red.shade50,
+            _selectedFiles.length <= remaining
+                ? Colors.green.shade100
+                : Colors.red.shade100,
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: _selectedFiles.length <= remaining ? Colors.green.shade200 : Colors.red.shade200,
+          color: _selectedFiles.length <= remaining
+              ? Colors.green.shade200
+              : Colors.red.shade200,
         ),
       ),
       child: Column(
@@ -985,11 +1075,15 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: _selectedFiles.length <= remaining ? Colors.green : Colors.red,
+                  color: _selectedFiles.length <= remaining
+                      ? Colors.green
+                      : Colors.red,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
-                  _selectedFiles.length <= remaining ? Icons.check_rounded : Icons.warning_rounded,
+                  _selectedFiles.length <= remaining
+                      ? Icons.check_rounded
+                      : Icons.warning_rounded,
                   color: Colors.white,
                   size: 20,
                 ),
@@ -1002,15 +1096,19 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                     Text(
                       'الرصيد المتاح',
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: (_selectedFiles.length <= remaining ? Colors.green.shade800 : Colors.red.shade800),
-                        fontWeight: FontWeight.w600,
-                      ),
+                            color: (_selectedFiles.length <= remaining
+                                ? Colors.green.shade800
+                                : Colors.red.shade800),
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
                     Text(
                       'سيتم استهلاك ${_selectedFiles.length} من $remaining محاولات متبقية',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: (_selectedFiles.length <= remaining ? Colors.green.shade700 : Colors.red.shade700),
-                      ),
+                            color: (_selectedFiles.length <= remaining
+                                ? Colors.green.shade700
+                                : Colors.red.shade700),
+                          ),
                     ),
                   ],
                 ),
@@ -1072,18 +1170,18 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
   Widget _buildFolderSelectionSection() {
     final provider = context.watch<StudyProvider>();
     final availableLists = provider.lists;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'حدد مجلد لحفظ الجلسة',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
+                fontWeight: FontWeight.w500,
+              ),
         ),
         const SizedBox(height: 16),
-        
+
         // Option for no folder (uncategorized)
         Container(
           margin: const EdgeInsets.only(bottom: 8),
@@ -1095,28 +1193,31 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
             onTap: () => setState(() => _selectedListId = null),
           ),
         ),
-        
+
         // Available folders
-        ...availableLists.map((list) => Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: _buildFolderOption(
-            title: list.name,
-            subtitle: 'مجلد موجود',
-            icon: list.icon,
-            color: list.color,
-            isSelected: _selectedListId == list.id,
-            onTap: () => setState(() => _selectedListId = list.id),
-          ),
-        )).toList(),
-        
+        ...availableLists
+            .map((list) => Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: _buildFolderOption(
+                    title: list.name,
+                    subtitle: 'مجلد موجود',
+                    icon: list.icon,
+                    color: list.color,
+                    isSelected: _selectedListId == list.id,
+                    onTap: () => setState(() => _selectedListId = list.id),
+                  ),
+                ))
+            .toList(),
+
         const SizedBox(height: 12),
-        
+
         // Create new folder hint
         if (availableLists.isEmpty)
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+              color:
+                  Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -1131,8 +1232,8 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                   child: Text(
                     'يمكنك إنشاء مجلدات جديدة من الصفحة الرئيسية',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                   ),
                 ),
               ],
@@ -1155,13 +1256,13 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.1) 
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
               : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected 
-                ? Theme.of(context).colorScheme.primary 
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
                 : Theme.of(context).colorScheme.outline.withOpacity(0.2),
             width: isSelected ? 2 : 1,
           ),
@@ -1171,9 +1272,13 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: (color ?? (isSelected 
-                    ? Theme.of(context).colorScheme.primary 
-                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.1))),
+                color: (color ??
+                    (isSelected
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.1))),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -1190,17 +1295,21 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                      color: isSelected 
-                          ? Theme.of(context).colorScheme.primary 
-                          : Theme.of(context).colorScheme.onSurface,
-                    ),
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w500,
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.onSurface,
+                        ),
                   ),
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                    ),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.7),
+                        ),
                   ),
                 ],
               ),
@@ -1233,7 +1342,7 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
     final provider = context.watch<StudyProvider>();
     final remaining = provider.usageService.getRemainingUses();
     final timeUntilReset = provider.usageService.getTimeUntilReset();
-    
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       backgroundColor: Colors.transparent,
@@ -1299,17 +1408,21 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                       children: [
                         Text(
                           'إنشاء جلسة جديدة',
-                          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineLarge
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'حوّل ملفاتك إلى جلسة مذاكرة ذكية',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withOpacity(0.9),
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white.withOpacity(0.9),
+                                  ),
                         ),
                       ],
                     ),
@@ -1317,7 +1430,7 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                 ],
               ),
             ),
-            
+
             // Content
             Expanded(
               child: SingleChildScrollView(
@@ -1336,9 +1449,9 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                         icon: Icons.upload_file_rounded,
                         child: _buildFileSection(),
                       ),
-                      
+
                       const SizedBox(height: 20),
-                      
+
                       // Step 2: Session Details
                       _buildStepCard(
                         context: context,
@@ -1348,9 +1461,9 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                         icon: Icons.edit_note_rounded,
                         child: _buildSessionDetailsSection(),
                       ),
-                      
+
                       const SizedBox(height: 20),
-                      
+
                       // Step 3: Folder Selection
                       _buildStepCard(
                         context: context,
@@ -1360,9 +1473,9 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                         icon: Icons.folder_outlined,
                         child: _buildFolderSelectionSection(),
                       ),
-                      
+
                       const SizedBox(height: 20),
-                      
+
                       // Step 4: AI Settings
                       _buildStepCard(
                         context: context,
@@ -1372,9 +1485,9 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                         icon: Icons.settings_suggest_rounded,
                         child: _buildAISettingsSection(context),
                       ),
-                      
+
                       const SizedBox(height: 20),
-                      
+
                       // Usage Info
                       _buildUsageInfo(remaining, timeUntilReset),
                     ],
@@ -1382,12 +1495,15 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                 ),
               ),
             ),
-            
+
             // Footer Actions
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceVariant
+                    .withOpacity(0.5),
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(24),
                   bottomRight: Radius.circular(24),
@@ -1399,8 +1515,12 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
-                        side: BorderSide(color: Theme.of(context).colorScheme.outline),
+                        foregroundColor: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.8),
+                        side: BorderSide(
+                            color: Theme.of(context).colorScheme.outline),
                         backgroundColor: Theme.of(context).colorScheme.surface,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -1410,8 +1530,11 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                       child: Text(
                         'إلغاء',
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
-                        ),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withOpacity(0.8),
+                            ),
                       ),
                     ),
                   ),
@@ -1420,21 +1543,27 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                     flex: 2,
                     child: Container(
                       decoration: BoxDecoration(
-                        gradient: _selectedFiles.isNotEmpty && _selectedFiles.length <= remaining
+                        gradient: _selectedFiles.isNotEmpty &&
+                                _selectedFiles.length <= remaining
                             ? LinearGradient(
                                 colors: [
                                   Theme.of(context).colorScheme.primary,
-                                  Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                                  Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withOpacity(0.8),
                                 ],
                               )
                             : null,
-                        color: _selectedFiles.isEmpty || _selectedFiles.length > remaining 
-                            ? Colors.grey.shade300 
+                        color: _selectedFiles.isEmpty ||
+                                _selectedFiles.length > remaining
+                            ? Colors.grey.shade300
                             : null,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: ElevatedButton.icon(
-                        onPressed: (_selectedFiles.isNotEmpty && _selectedFiles.length <= remaining)
+                        onPressed: (_selectedFiles.isNotEmpty &&
+                                _selectedFiles.length <= remaining)
                             ? () {
                                 if (_formKey.currentState!.validate()) {
                                   Navigator.pop(context, {
@@ -1451,15 +1580,17 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                         icon: const Icon(Icons.auto_awesome_rounded, size: 20),
                         label: Text(
                           'ابدأ التحليل بالذكاء الاصطناعي',
-                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            fontSize: 15,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    fontSize: 15,
+                                  ),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           elevation: 0,
-                          foregroundColor: _selectedFiles.isNotEmpty && _selectedFiles.length <= remaining
-                              ? Colors.white 
+                          foregroundColor: _selectedFiles.isNotEmpty &&
+                                  _selectedFiles.length <= remaining
+                              ? Colors.white
                               : Colors.grey.shade600,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -1478,4 +1609,3 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
     );
   }
 }
-

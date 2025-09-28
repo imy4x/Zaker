@@ -19,8 +19,8 @@ class StudyMaterialScreen extends StatelessWidget {
         provider.sessions.firstWhere((s) => s.id == session.id);
 
     final availableQuestions = currentSessionState.quizQuestions
-        .where((q) =>
-            !currentSessionState.correctlyAnsweredQuestions.contains(q.question))
+        .where((q) => !currentSessionState.correctlyAnsweredQuestions
+            .contains(q.question))
         .toList();
 
     if (availableQuestions.isEmpty) {
@@ -45,7 +45,7 @@ class StudyMaterialScreen extends StatelessWidget {
       final shuffledOptionsEn = List<String>.from(q.optionsEn)..shuffle();
       final newCorrectIndexAr = shuffledOptionsAr.indexOf(correctAnswerTextAr);
       final newCorrectIndexEn = shuffledOptionsEn.indexOf(correctAnswerTextEn);
-      
+
       // Make sure both language versions have the same correct index
       // by adjusting the English options to match the Arabic order
       final finalOptionsEn = List<String>.from(shuffledOptionsEn);
@@ -55,7 +55,7 @@ class StudyMaterialScreen extends StatelessWidget {
         finalOptionsEn[newCorrectIndexAr] = correctAnswerTextEn;
         finalOptionsEn[newCorrectIndexEn] = temp;
       }
-      
+
       return QuizQuestion(
           questionAr: q.questionAr,
           optionsAr: shuffledOptionsAr,
@@ -100,14 +100,14 @@ class StudyMaterialScreen extends StatelessWidget {
           body: TabBarView(
             children: [
               // Handle both new bilingual format and legacy format
-              session.summaryEn.isNotEmpty 
-                ? EnhancedSummaryWidget(
-                    summaryAr: session.summaryAr, 
-                    summaryEn: session.summaryEn,
-                  )
-                : EnhancedSummaryWidget.legacy(
-                    summary: session.summary,
-                  ),
+              session.summaryEn.isNotEmpty
+                  ? EnhancedSummaryWidget(
+                      summaryAr: session.summaryAr,
+                      summaryEn: session.summaryEn,
+                    )
+                  : EnhancedSummaryWidget.legacy(
+                      summary: session.summary,
+                    ),
 
               Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -125,11 +125,14 @@ class StudyMaterialScreen extends StatelessWidget {
     final theme = Theme.of(context);
     return Consumer<StudyProvider>(
       builder: (context, provider, child) {
-        final currentSession = provider.sessions.firstWhere((s) => s.id == session.id);
+        final currentSession =
+            provider.sessions.firstWhere((s) => s.id == session.id);
         final totalGenerated = currentSession.quizQuestions.length;
-        final totalUniqueCorrect = currentSession.correctlyAnsweredQuestions.length;
-        final progressPercentage = totalGenerated > 0 ? totalUniqueCorrect / totalGenerated : 0.0;
-        
+        final totalUniqueCorrect =
+            currentSession.correctlyAnsweredQuestions.length;
+        final progressPercentage =
+            totalGenerated > 0 ? totalUniqueCorrect / totalGenerated : 0.0;
+
         return Center(
           child: SingleChildScrollView(
             physics: const ClampingScrollPhysics(),
@@ -141,8 +144,8 @@ class StudyMaterialScreen extends StatelessWidget {
                     size: 80, color: theme.colorScheme.primary),
                 const SizedBox(height: 16),
                 Text('اختبر فهمك للمادة',
-                    style: theme.textTheme.displayLarge
-                        ?.copyWith(fontSize: 24)),
+                    style:
+                        theme.textTheme.displayLarge?.copyWith(fontSize: 24)),
                 const SizedBox(height: 8),
                 Text(
                   'ستظهر لك أسئلة متنوعة الصعوبة بشكل عشوائي.',
@@ -158,17 +161,16 @@ class StudyMaterialScreen extends StatelessWidget {
                     lineHeight: 14.0, // زيادة الارتفاع قليلاً
                     barRadius: const Radius.circular(7),
                     center: Text(
-                      '${(progressPercentage * 100).toStringAsFixed(0)}% مكتمل',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10,
-                      )
-                    ),
+                        '${(progressPercentage * 100).toStringAsFixed(0)}% مكتمل',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        )),
                     progressColor: Colors.green,
                     backgroundColor: Colors.grey.shade300,
                   ),
-                
+
                 const Divider(height: 40),
 
                 Text('ابدأ اختباراً جديداً',
@@ -199,4 +201,3 @@ class StudyMaterialScreen extends StatelessWidget {
     );
   }
 }
-
