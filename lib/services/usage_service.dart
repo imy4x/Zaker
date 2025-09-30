@@ -5,7 +5,7 @@ class UsageService {
   static const _usageKey = 'daily_usage_stats_v4';
   late SharedPreferences _prefs;
 
-  static const int _dailyLimit = 3;
+  static const int _dailyLimit = 50;
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();

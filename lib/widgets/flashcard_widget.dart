@@ -610,45 +610,75 @@ class _UnifiedTextWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Clean and normalize the text
+    // تنظيف وتعريب النص
     String cleanText = text.trim();
-
-    // Check if text contains numbered lists
-    if (cleanText.contains(RegExp(r'^\d+[-\.)\s]', multiLine: true))) {
+    
+    // تحسين التعرف على القوائم المرقمة بأشكال مختلفع
+    // مثل "1."  أو "1)" أو "1-" أو آه 1:"
+    if (cleanText.contains(RegExp(r'^\d+\s*[\.\)\-:]\s*.+', multiLine: true))) {
       return _buildNumberedList(context);
     }
 
-    // Check if text contains bullet points
-    if (cleanText.contains(RegExp(r'^[•\-\*]\s', multiLine: true))) {
+    // فحص وجود نقاط تعداد
+    if (cleanText.contains(RegExp(r'^[•\-\*]\s+.+', multiLine: true))) {
       return _buildBulletList(context);
     }
 
-    // Regular paragraph text
+    // نص عادي بدون قوائم
     return _buildParagraph(context);
   }
 
   Widget _buildNumberedList(BuildContext context) {
-    final lines =
-        text.split('\n').where((line) => line.trim().isNotEmpty).toList();
+    // لاحظ أن الأسطر قد تكون منفصلة بفراغات متعددة
+    // لذا نحتاج إلى معالجة أفضل للنص
+    final lines = text.split('\n')
+        .where((line) => line.trim().isNotEmpty)
+        .toList();
+    
     final items = <Widget>[];
-
+    
+    // متغير لتتبع ما إذا كنا بداخل قائمة مرقمة
+    bool inNumberedList = false;
+    int listItemCount = 1;
+    
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
-      final numberedMatch = RegExp(r'^(\d+)[-\.)\s]+(.*)').firstMatch(line);
-
+      
+      // تحسين التعبير المنتظم للتعرف على الأرقام بمختلف الفواصل
+      final numberedMatch = RegExp(r'^(\d+)\s*[\.\)\-:]\s*(.*)').firstMatch(line);
+      
       if (numberedMatch != null) {
+        inNumberedList = true;
         final number = numberedMatch.group(1)!;
         final content = numberedMatch.group(2)!.trim();
-
+        
+        // تنسيق محسّن لعناصر القائمة المرقمة
         items.add(_buildListItem(
           context: context,
           number: number,
           content: content,
           isLast: i == lines.length - 1,
         ));
+        
+        listItemCount++;
       } else {
-        // Handle non-numbered lines as regular text
+        // إذا كان هذا نص عادي بين عناصر القائمة المرقمة
+        if (inNumberedList && lines[i].trim().length < 50 && i < lines.length - 1) {
+          // تحقق من السطر التالي - إذا كان مرقماً، فهذا سطر عنوان
+          final nextLineIsNumbered = i < lines.length - 1 && 
+              RegExp(r'^(\d+)\s*[\.\)\-:]\s*(.*)').hasMatch(lines[i+1].trim());
+          
+          if (nextLineIsNumbered) {
+            // هذا عنوان للقسم التالي
+            items.add(_buildSectionTitle(context, line));
+            inNumberedList = false;
+            continue;
+          }
+        }
+        
+        // معالجة الأسطر العادية
         items.add(_buildRegularLine(context, line));
+        inNumberedList = false;
       }
     }
 
@@ -871,20 +901,55 @@ class _UnifiedTextWidget extends StatelessWidget {
     );
   }
 
+  /// دالة بناء عنوان لقسم في القائمة
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    final hasArabic = title.contains(RegExp(r'[\u0600-\u06FF]'));
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Theme.of(context).colorScheme.primaryContainer,
+            Theme.of(context).colorScheme.primaryContainer.withOpacity(0.8),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        title,
+        style: GoogleFonts.cairo(
+          fontSize: 17,
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.onPrimaryContainer,
+          height: 1.5,
+        ),
+        textAlign: TextAlign.center,
+        textDirection: hasArabic ? TextDirection.rtl : TextDirection.ltr,
+      ),
+    );
+  }
+
   Widget _buildRegularLine(BuildContext context, String line) {
     if (line.trim().isEmpty) return const SizedBox(height: 12);
 
     final hasArabic = line.contains(RegExp(r'[\u0600-\u06FF]'));
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Text(
         line,
         style: GoogleFonts.cairo(
           fontSize: 16,
           fontWeight: FontWeight.w500,
           color: Theme.of(context).colorScheme.onSurface,
-          height: 1.7,
+          height: 1.6,
         ),
         textAlign: TextAlign.center,
         textDirection: hasArabic ? TextDirection.rtl : TextDirection.ltr,

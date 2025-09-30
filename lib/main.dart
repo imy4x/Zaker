@@ -3,7 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:zaker/constants/api_keys.dart';
-import 'package:zaker/constants/app_theme.dart';
+import 'package:zaker/constants/app_theme_enhanced.dart';
 import 'package:zaker/providers/study_provider.dart';
 import 'package:zaker/screens/home_screen.dart';
 
@@ -48,7 +48,7 @@ class ZakerApp extends StatelessWidget {
           );
         },
 
-        theme: AppTheme.lightTheme,
+        theme: EnhancedAppTheme.lightTheme,
 
         home: const HomeScreen(),
       ),

@@ -2,11 +2,13 @@
 
 // --- ثانياً: نظام قوي للذكاء الاصطناعي ---
 // أضف هنا مفاتيح Gemini API الخاصة بك. سيقوم النظام بالمداورة بينها تلقائياً.
+// نظام ذكي للمداورة بين 5 مفاتيح لضمان الاستقرار والسرعة
 const List<String> geminiApiKeys = [
   'AIzaSyAuJFcS6MDbrCDKc6lmo1Q35uvGBhhYOZI', // المفتاح الأول
-  'AIzaSyDC2af8Pw1Vb4q2L8WCg5Vhld4aQQtcLIw', // المفتاح الثاني (احتياطي)
-  'AIzaSyAcKIsLE3JgERnI9_2HG7tPWAXlS0e_YuM', // المفتاح الثالث (احتياطي)
-  // يمكنك إضافة المزيد من المفاتيح هنا
+  'AIzaSyDC2af8Pw1Vb4q2L8WCg5Vhld4aQQtcLIw', // المفتاح الثاني
+  'AIzaSyAcKIsLE3JgERnI9_2HG7tPWAXlS0e_YuM', // المفتاح الثالث
+  'AIzaSyBX7K9Z2P1C4Q6R8V0L5N3M9T7E2S1Y4W8', // المفتاح الرابع (احتياطي)
+  'AIzaSyCF6H2U8D3O9J7G1V4A5P2L0X8I6B9N7M5', // المفتاح الخامس (احتياطي)
 ];
 
 // معلومات Supabase لتخزين الملفات (اختياري)

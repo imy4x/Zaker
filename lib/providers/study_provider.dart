@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:zaker/api/gemini_service.dart';
+import 'package:zaker/api/simple_gemini_service.dart';
 import 'package:zaker/constants/app_constants.dart';
 import 'package:zaker/models/study_list.dart';
 import 'package:zaker/models/study_session.dart';

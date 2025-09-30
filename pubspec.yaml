@@ -14,7 +14,7 @@ dependencies:
 
   # flutter_markdown: ^0.7.1
   # Icons
-  syncfusion_flutter_pdf: ^31.1.20 # --- تم التغيير: مكتبة احترافية لاستخراج النصوص من PDF ---
+  syncfusion_flutter_pdf: ^31.1.19 # --- تم التغيير: مكتبة احترافية لاستخراج النصوص من PDF ---
 
   provider: ^6.1.2 # لإدارة الحالة
   google_generative_ai: ^0.4.1 # للذكاء الاصطناعي
