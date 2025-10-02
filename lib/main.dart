@@ -1,21 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:zaker/constants/api_keys.dart';
+import 'package:zaker/providers/theme_provider.dart';
 import 'package:zaker/constants/app_theme_enhanced.dart';
 import 'package:zaker/providers/study_provider.dart';
 import 'package:zaker/screens/home_screen.dart';
+import 'package:zaker/services/usage_service.dart';
 
 void main() async {
+  // التأكد من تهيئة Flutter قبل تشغيل أي كود يعتمد عليه
   WidgetsFlutterBinding.ensureInitialized();
+  // تهيئة خدمة تتبع الاستخدام
+  final usageService = UsageService();
+  // تعديل: تم استدعاء الدالة الصحيحة لتهيئة الخدمة
+  await usageService.init();
 
-  await Supabase.initialize(
-    url: supabaseUrl,
-    anonKey: supabaseAnonKey,
+  runApp(
+    // استخدام MultiProvider لتوفير جميع الحالات للتطبيق بأكمله
+    MultiProvider(
+      providers: [
+        // توفير حالة مزود المذاكرة مع خدمة تتبع الاستخدام
+        ChangeNotifierProvider(create: (_) => StudyProvider(usageService)),
+        // توفير حالة مدير الثيم
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+      ],
+      child: const ZakerApp(),
+    ),
   );
-
-  runApp(const ZakerApp());
 }
 
 class ZakerApp extends StatelessWidget {
@@ -23,35 +34,42 @@ class ZakerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => StudyProvider(),
-      child: MaterialApp(
-        title: 'Zaker - ذاكر',
-        debugShowCheckedModeBanner: false,
+    // استخدام Consumer للاستماع إلى تغييرات الثيم وتحديث واجهة التطبيق
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'Zaker - ذاكر',
+          debugShowCheckedModeBanner: false,
 
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('ar', ''), // Arabic
-          Locale('en', ''), // English
-        ],
-        locale: const Locale('ar', ''),
+          // إعدادات دعم اللغة العربية والإنجليزية
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('ar', ''), // Arabic
+            Locale('en', ''), // English
+          ],
+          locale: const Locale('ar', ''),
 
-        // --- تعديل: فرض اتجاه الواجهة من اليمين لليسار للتطبيق بالكامل ---
-        builder: (context, child) {
-          return Directionality(
-            textDirection: TextDirection.rtl,
-            child: child!,
-          );
-        },
+          // فرض اتجاه الواجهة من اليمين لليسار للتطبيق بالكامل
+          builder: (context, child) {
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: child!,
+            );
+          },
 
-        theme: EnhancedAppTheme.lightTheme,
+          // تطبيق الثيمات بناءً على اختيار المستخدم
+          theme: EnhancedAppTheme.lightTheme,
+          darkTheme: EnhancedAppTheme.darkTheme,
+          themeMode: themeProvider.themeMode,
 
-        home: const HomeScreen(),
-      ),
+          home: const HomeScreen(),
+        );
+      },
     );
   }
 }
+

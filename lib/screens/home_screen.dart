@@ -10,6 +10,7 @@ import 'package:zaker/screens/study_material_screen.dart';
 import 'package:zaker/utils/dialogs.dart';
 import 'package:zaker/utils/responsive_utils.dart';
 import 'package:zaker/widgets/loading_view.dart';
+import 'package:zaker/providers/theme_provider.dart';
 import 'package:zaker/widgets/session_list_item.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -75,10 +76,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Consumer<StudyProvider>(
       builder: (context, provider, child) {
+        final themeProvider = context.watch<ThemeProvider>();
         return Scaffold(
           appBar: AppBar(
             title: const Text('جلساتي'),
             actions: [
+              
               if (provider.state !=
                   AppState.loading) // Only show when not analyzing
                 IconButton(
@@ -472,17 +475,11 @@ class _CreateListDialogState extends State<_CreateListDialog> {
                           Navigator.pop(context);
                         }
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
+                      // هنا التعديل: تم استبدال النمط المخصص بنمط الثيم الموحد
+                      style: Theme.of(context).elevatedButtonTheme.style,
                       child: Text(
                         isEditing ? 'حفظ' : 'إنشاء',
-                        style: Theme.of(context).textTheme.labelLarge,
+                        // ملاحظة: تم إزالة النمط من هنا لأن نمط الزر في الثيم يعالجه تلقائياً
                       ),
                     ),
                   ),
@@ -540,7 +537,7 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
     }
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg'],
+      allowedExtensions: ['pdf', 'docx', 'doc', 'png', 'jpg', 'jpeg'],
       allowMultiple: true,
     );
     if (result != null) {
@@ -697,7 +694,7 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'اختر ملفات PDF أو صور',
+                  'اختر ملفات PDF، Word أو صور',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context)
                             .colorScheme
@@ -1152,12 +1149,18 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
     switch (extension?.toLowerCase()) {
       case 'pdf':
         return Icons.picture_as_pdf_rounded;
+      case 'docx':
+      case 'doc':
+        return Icons.description_rounded; // أيقونة Word
+      case 'pptx':
+      case 'ppt':
+        return Icons.slideshow_rounded; // أيقونة PowerPoint
       case 'jpg':
       case 'jpeg':
       case 'png':
         return Icons.image_rounded;
       default:
-        return Icons.description_rounded;
+        return Icons.insert_drive_file_rounded;
     }
   }
 
@@ -1445,7 +1448,7 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                         context: context,
                         stepNumber: 1,
                         title: 'اختر الملفات',
-                        subtitle: 'PDF أو صور المواد الدراسية',
+                        subtitle: 'PDF، Word أو صور',
                         icon: Icons.upload_file_rounded,
                         child: _buildFileSection(),
                       ),
@@ -1542,63 +1545,50 @@ class _SessionOptionsDialogState extends State<_SessionOptionsDialog> {
                   Expanded(
                     flex: 2,
                     child: Container(
-                      decoration: BoxDecoration(
-                        gradient: _selectedFiles.isNotEmpty &&
-                                _selectedFiles.length <= remaining
-                            ? LinearGradient(
-                                colors: [
-                                  Theme.of(context).colorScheme.primary,
-                                  Theme.of(context)
-                                      .colorScheme
-                                      .primary
-                                      .withOpacity(0.8),
-                                ],
-                              )
-                            : null,
-                        color: _selectedFiles.isEmpty ||
-                                _selectedFiles.length > remaining
-                            ? Colors.grey.shade300
-                            : null,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: ElevatedButton.icon(
-                        onPressed: (_selectedFiles.isNotEmpty &&
-                                _selectedFiles.length <= remaining)
-                            ? () {
-                                if (_formKey.currentState!.validate()) {
-                                  Navigator.pop(context, {
-                                    'files': _selectedFiles,
-                                    'title': _titleController.text,
-                                    'language': _selectedLanguage,
-                                    'depth': _selectedDepth,
-                                    'notes': _notesController.text.trim(),
-                                    'listId': _selectedListId,
-                                  });
-                                }
-                              }
-                            : null,
-                        icon: const Icon(Icons.auto_awesome_rounded, size: 20),
-                        label: Text(
-                          'ابدأ التحليل بالذكاء الاصطناعي',
-                          style:
-                              Theme.of(context).textTheme.labelLarge?.copyWith(
-                                    fontSize: 15,
-                                  ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          elevation: 0,
-                          foregroundColor: _selectedFiles.isNotEmpty &&
+                        decoration: BoxDecoration(
+                          gradient: _selectedFiles.isNotEmpty &&
                                   _selectedFiles.length <= remaining
-                              ? Colors.white
-                              : Colors.grey.shade600,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
+                              ? LinearGradient(
+                                  colors: [
+                                    Theme.of(context).colorScheme.primary,
+                                    Theme.of(context)
+                                        .colorScheme
+                                        .primary
+                                        .withOpacity(0.8),
+                                  ],
+                                )
+                              : null,
+                          color: _selectedFiles.isEmpty ||
+                                  _selectedFiles.length > remaining
+                              ? Colors.grey.shade300
+                              : null,
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                      ),
-                    ),
+                        child: // قم باستبدال الكود الحالي لـ ElevatedButton.icon بهذا الكود المعدل
+// هذا الكود يستخدم التصميم الموحد من الثيم الرئيسي للتطبيق
+
+                            ElevatedButton.icon(
+                          onPressed: (_selectedFiles.isNotEmpty &&
+                                  _selectedFiles.length <= remaining)
+                              ? () {
+                                  if (_formKey.currentState!.validate()) {
+                                    Navigator.pop(context, {
+                                      'files': _selectedFiles,
+                                      'title': _titleController.text,
+                                      'language': _selectedLanguage,
+                                      'depth': _selectedDepth,
+                                      'notes': _notesController.text.trim(),
+                                      'listId': _selectedListId,
+                                    });
+                                  }
+                                }
+                              : null,
+                          icon:
+                              const Icon(Icons.auto_awesome_rounded, size: 20),
+                          label: const Text('ابدأ التحليل'),
+                          // هنا التعديل: تم استخدام تصميم الثيم مباشرة
+                          style: Theme.of(context).elevatedButtonTheme.style,
+                        )),
                   ),
                 ],
               ),

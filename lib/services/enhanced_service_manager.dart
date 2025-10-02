@@ -3,8 +3,8 @@ import 'package:zaker/models/quiz_question.dart';
 import 'package:zaker/models/flashcard.dart';
 import 'package:zaker/constants/app_constants.dart';
 
-/// 🎯 مدير الخدمات المحسن - Enhanced Service Manager
-/// يدير جميع العمليات المتعلقة بالذكاء الاصطناعي مع نظام fallback قوي
+/// 🎯 مدير الخدمات المحسن - Enhanced Service Manager v2.0
+/// يدير الجيل الجديد من العمليات المعززة بالذكاء الاصطناعي، مع نظام تحليل ثنائي المراحل.
 class EnhancedServiceManager {
   late final GeminiService _geminiService;
   
@@ -45,15 +45,16 @@ class EnhancedServiceManager {
       _failedRequests++;
       print('خطأ في التحقق من المحتوى: $e');
       
+      // Fallback: Assume content is valid if validation fails, to not block the user.
       return ContentValidationResult(
-        isValid: false,
-        reason: 'فشل في التحقق من صحة المحتوى',
-        confidence: 0.0,
+        isValid: true,
+        reason: 'فشل التحقق، تم القبول افتراضياً',
+        confidence: 0.5,
       );
     }
   }
 
-  /// توليد ملخص تفاعلي
+  /// توليد ملخص تفاعلي باستخدام "شخصية الخبير"
   Future<SummaryResult> generateSummary({
     required String text,
     String targetLanguage = 'ar',
@@ -78,7 +79,7 @@ class EnhancedServiceManager {
         isSuccess: true,
         arabicSummary: result['ar'] ?? '',
         englishSummary: result['en'] ?? '',
-        wordCount: text.length,
+        wordCount: text.split(RegExp(r'\s+')).length,
         processingTime: DateTime.now(),
       );
       
@@ -90,17 +91,18 @@ class EnhancedServiceManager {
         isSuccess: false,
         arabicSummary: _getFallbackSummary('ar', text),
         englishSummary: _getFallbackSummary('en', text),
-        wordCount: text.length,
+        wordCount: text.split(RegExp(r'\s+')).length,
         processingTime: DateTime.now(),
         errorMessage: e.toString(),
       );
     }
   }
 
-  /// توليد أسئلة تفاعلية
+  /// توليد أسئلة تفاعلية باستخدام "شخصية مصمم الاختبارات"
   Future<QuizResult> generateQuiz({
     required String text,
     String targetLanguage = 'ar',
+    AnalysisDepth depth = AnalysisDepth.medium,
     required Function(int) onKeyChanged,
     String? customNotes,
   }) async {
@@ -110,6 +112,7 @@ class EnhancedServiceManager {
       final questions = await _geminiService.generateQuiz(
         text, 
         targetLanguage, 
+        depth,
         onKeyChanged,
         customNotes: customNotes,
       );
@@ -137,7 +140,7 @@ class EnhancedServiceManager {
     }
   }
 
-  /// توليد بطاقات تعليمية
+  /// توليد بطاقات تعليمية باستخدام "شخصية صانع الامتحانات"
   Future<FlashcardResult> generateFlashcards({
     required String text,
     String targetLanguage = 'ar',
@@ -199,45 +202,30 @@ class EnhancedServiceManager {
   // === Fallback Methods ===
 
   String _getFallbackSummary(String language, String originalText) {
+    final wordCount = originalText.split(RegExp(r'\s+')).length;
     if (language == 'ar') {
       return '''
-# ملخص تلقائي
+# ملخص احتياطي
 
-## نظرة عامة
-تم استخراج هذا المحتوى من النص المرفق وهو جاهز للمراجعة والدراسة.
+## تعذر إنشاء الملخص
+حدث خطأ أثناء محاولة تحليل النص. هذا ملخص احتياطي.
 
-### المحتوى الأساسي
-النص يحتوي على ${originalText.length} حرف من المعلومات التعليمية المهمة.
+### محتوى النص
+النص الأصلي يحتوي على ما يقارب $wordCount كلمة.
 
-### نقاط للمراجعة
-- قم بقراءة النص الأصلي بعناية
-- حدد النقاط الرئيسية والمفاهيم المهمة
-- اربط المعلومات ببعضها البعض
-
-## توصيات للدراسة
-- راجع النص مرة أخرى للتفاصيل
-- اكتب ملاحظاتك الخاصة
-- اختبر فهمك للمادة
+> **نصيحة:** يرجى المحاولة مرة أخرى. إذا استمرت المشكلة، تأكد من أن النص واضح وقابل للقراءة.
 ''';
     } else {
       return '''
-# Automatic Summary
+# Fallback Summary
 
-## Overview
-This content has been extracted from the provided text and is ready for review and study.
+## Summary Generation Failed
+An error occurred while trying to analyze the text. This is a fallback summary.
 
-### Main Content
-The text contains ${originalText.length} characters of important educational information.
+### Text Content
+The original text contains approximately $wordCount words.
 
-### Points for Review
-- Read the original text carefully
-- Identify key points and important concepts
-- Connect information together
-
-## Study Recommendations
-- Review the text again for details
-- Write your own notes
-- Test your understanding of the material
+> **Tip:** Please try again. If the problem persists, ensure the text is clear and readable.
 ''';
     }
   }
@@ -245,10 +233,10 @@ The text contains ${originalText.length} characters of important educational inf
   List<QuizQuestion> _getFallbackQuestions() {
     return [
       QuizQuestion(
-        questionAr: 'ما هو الموضوع الرئيسي لهذا المحتوى؟',
-        questionEn: 'What is the main topic of this content?',
-        optionsAr: ['موضوع تعليمي مهم', 'معلومات عامة', 'نص غير مفهوم', 'لا شيء مما سبق'],
-        optionsEn: ['Important educational topic', 'General information', 'Unclear text', 'None of the above'],
+        questionAr: 'لماذا ظهر هذا السؤال؟',
+        questionEn: 'Why did this question appear?',
+        optionsAr: ['لأن الذكاء الاصطناعي فشل في إنشاء أسئلة', 'سؤال عشوائي', 'لا أعرف', 'كل ما سبق'],
+        optionsEn: ['Because the AI failed to generate questions', 'A random question', 'I don\'t know', 'All of the above'],
         correctAnswerIndex: 0,
         difficulty: QuizDifficulty.easy,
       ),
@@ -258,10 +246,10 @@ The text contains ${originalText.length} characters of important educational inf
   List<Flashcard> _getFallbackFlashcards() {
     return [
       Flashcard(
-        questionAr: 'ما هو هذا المحتوى؟',
-        answerAr: 'هو محتوى تعليمي يحتوي على معلومات مهمة للدراسة والمراجعة.',
-        questionEn: 'What is this content?',
-        answerEn: 'It is educational content containing important information for study and review.',
+        questionAr: 'ما سبب ظهور هذه البطاقة؟',
+        answerAr: 'ظهرت هذه البطاقة كبديل لأن النظام واجه خطأ أثناء محاولة إنشاء بطاقات تعليمية من النص.',
+        questionEn: 'Why did this flashcard appear?',
+        answerEn: 'This flashcard appeared as a fallback because the system encountered an error while trying to generate flashcards from the text.',
       ),
     ];
   }
@@ -354,3 +342,4 @@ class ServiceStats {
 
   String get successRatePercent => '${(successRate * 100).toStringAsFixed(1)}%';
 }
+

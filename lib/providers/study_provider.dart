@@ -1,10 +1,11 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:zaker/api/simple_gemini_service.dart';
 import 'package:zaker/constants/app_constants.dart';
 import 'package:zaker/models/study_list.dart';
 import 'package:zaker/models/study_session.dart';
+import 'package:zaker/services/enhanced_service_manager.dart';
+
 import 'package:zaker/services/storage_service.dart';
 import 'package:zaker/services/text_extraction_service.dart';
 import 'package:zaker/services/usage_service.dart';
@@ -15,10 +16,11 @@ import 'package:uuid/uuid.dart';
 enum AppState { idle, loading, success, error }
 
 class StudyProvider extends ChangeNotifier {
-  final GeminiService _aiService = GeminiService();
+  final EnhancedServiceManager _serviceManager = EnhancedServiceManager.instance;
   final StorageService _storageService = StorageService();
   final TextExtractionService _textExtractionService = TextExtractionService();
-  final UsageService _usageService = UsageService();
+  // تعديل: سيتم الآن استقبال الخدمة من الخارج بدلاً من إنشائها هنا
+  final UsageService _usageService;
   final Uuid _uuid = const Uuid();
 
   AppState _state = AppState.idle;
@@ -45,12 +47,13 @@ class StudyProvider extends ChangeNotifier {
   int _currentApiKeyIndex = 0;
   int get currentApiKeyIndex => _currentApiKeyIndex;
 
-  StudyProvider() {
+  // تعديل: الدالة الإنشائية الآن تستقبل خدمة تتبع الاستخدام
+  StudyProvider(this._usageService) {
     _init();
   }
 
   Future<void> _init() async {
-    await _usageService.init();
+    // تعديل: تم حذف تهيئة الخدمة من هنا لأنها تتم في ملف main.dart
     await _loadData();
   }
 
@@ -101,87 +104,87 @@ class StudyProvider extends ChangeNotifier {
     }
 
     _state = AppState.loading;
-    _updateProgress(0.0, 'جاري تهيئة الجلسة...');
+    _updateProgress(0.0, 'جاري تهيئة التحليل...');
     notifyListeners();
 
     try {
       void updateKeyIndex(int index) {
         _currentApiKeyIndex = index;
-        notifyListeners();
       }
 
-      _updateProgress(0.1, 'الخطوة 1/${files.length + 3}: تجميع النصوص...');
-      final combinedText =
-          await _textExtractionService.extractTextFromMultipleFiles(files);
-      if (combinedText.trim().isEmpty) {
+      _updateProgress(0.1, 'المرحلة 1/4: استخراج النصوص...');
+      final rawText = await _textExtractionService.extractRawText(files);
+      if (rawText.trim().isEmpty) {
         throw Exception('لم يتم استخلاص أي نص من الملفات المحددة.');
       }
 
-      _updateProgress(
-          0.25, 'الخطوة 2/${files.length + 3}: التحقق من المحتوى...');
-      final validationResult =
-          await _aiService.validateContent(combinedText, updateKeyIndex);
-      if (validationResult['is_study_material'] == false) {
-        final reason = validationResult['reason_ar'] ?? 'السبب غير معروف.';
-        throw Exception('هذا المستند لا يبدو كمادة دراسية.\nالسبب: $reason');
+      _updateProgress(0.25, 'المرحلة 2/4: التحقق من جودة المحتوى...');
+      final validationResult = await _serviceManager.validateContent(rawText, updateKeyIndex);
+      if (!validationResult.isValid) {
+        throw Exception('هذا المستند لا يبدو كمادة دراسية.\nالسبب: ${validationResult.reason}');
       }
 
-      _updateProgress(0.5, 'الخطوة 3/${files.length + 3}: إنشاء الملخص...');
-      final summaryFuture = _aiService.generateSummary(
-          combinedText, targetLanguage, depth, updateKeyIndex,
+      _updateProgress(0.4, 'المرحلة 3/4: إنشاء الملخص والبطاقات...');
+      final summaryFuture = _serviceManager.generateSummary(
+          text: rawText,
+          targetLanguage: targetLanguage,
+          depth: depth,
+          onKeyChanged: updateKeyIndex,
           customNotes: customNotes);
 
-      _updateProgress(
-          0.7, 'الخطوة 4/${files.length + 3}: إنشاء البطاقات التعليمية...');
-      final flashcardsFuture = _aiService.generateFlashcards(
-          combinedText, targetLanguage, depth, updateKeyIndex,
+      final flashcardsFuture = _serviceManager.generateFlashcards(
+          text: rawText,
+          targetLanguage: targetLanguage,
+          depth: depth,
+          onKeyChanged: updateKeyIndex,
           customNotes: customNotes);
 
-      _updateProgress(
-          0.85, 'الخطوة 5/${files.length + 3}: بناء بنك الأسئلة...');
-      final quizFuture = _aiService.generateQuiz(
-          combinedText, targetLanguage, updateKeyIndex,
+      _updateProgress(0.7, 'المرحلة 4/4: بناء بنك الأسئلة...');
+      final quizFuture = _serviceManager.generateQuiz(
+          text: rawText,
+          targetLanguage: targetLanguage,
+          depth: depth,
+          onKeyChanged: updateKeyIndex,
           customNotes: customNotes);
 
-      final results =
-          await Future.wait([summaryFuture, flashcardsFuture, quizFuture]);
+      final results = await Future.wait([summaryFuture, flashcardsFuture, quizFuture]);
 
-      final summaryData = results[0] as Map<String, String>;
-      final flashcards = results[1] as List<Flashcard>;
-      final quizQuestions = results[2] as List<QuizQuestion>;
+      final summaryResult = results[0] as SummaryResult;
+      final flashcardResult = results[1] as FlashcardResult;
+      final quizResult = results[2] as QuizResult;
+
+      if (!summaryResult.isSuccess || !flashcardResult.isSuccess || !quizResult.isSuccess) {
+        final errors = [
+          if (!summaryResult.isSuccess) 'الملخص: ${summaryResult.errorMessage}',
+          if (!flashcardResult.isSuccess) 'البطاقات: ${flashcardResult.errorMessage}',
+          if (!quizResult.isSuccess) 'الأسئلة: ${quizResult.errorMessage}',
+        ].join('\n');
+        throw Exception('فشل في أحد مراحل التحليل:\n$errors');
+      }
+
+      _updateProgress(1.0, 'اكتمل التحليل بنجاح!');
 
       final newSession = StudySession(
         id: _uuid.v4(),
         title: title,
         createdAt: DateTime.now(),
         languageCode: targetLanguage == 'العربية' ? 'ar' : 'en',
-        summaryAr: summaryData['ar'] ?? '',
-        summaryEn: summaryData['en'] ?? '',
-        flashcards: flashcards,
-        quizQuestions: quizQuestions,
-        listId: listId, // Assign to selected folder
+        summaryAr: summaryResult.arabicSummary,
+        summaryEn: summaryResult.englishSummary,
+        flashcards: flashcardResult.flashcards,
+        quizQuestions: quizResult.questions,
+        listId: listId,
       );
 
       _sessions.insert(0, newSession);
       await _storageService.saveSessions(_sessions);
-
-      // --- تعديل: تم تمرير عدد الملفات لتسجيل الاستخدام بشكل صحيح ---
       await _usageService.recordUsage(count: files.length);
 
       _state = AppState.success;
       notifyListeners();
       return newSession;
     } catch (e) {
-      // Check if it's an AI quota/overload error
-      if (e.toString().contains('Quota') ||
-          e.toString().contains('exceeded') ||
-          e.toString().contains('quota') ||
-          e.toString().contains('overloaded')) {
-        _errorMessage =
-            'الذكاء الاصطناعي مرهق حالياً \u{1F614}\n\nيرجى المحاولة مرة أخرى بعد بضع دقائق. \u{1F504}';
-      } else {
-        _errorMessage = e.toString().replaceFirst("Exception: ", "");
-      }
+      _errorMessage = e.toString().replaceFirst("Exception: ", "");
       _state = AppState.error;
       notifyListeners();
       return null;
@@ -191,16 +194,20 @@ class StudyProvider extends ChangeNotifier {
   // --- دوال إدارة القوائم ---
 
   Future<void> createList(String name) async {
-    final newList = StudyList(id: _uuid.v4(), name: name);
+    if (name.trim().isEmpty) return;
+    final newList = StudyList(id: _uuid.v4(), name: name.trim());
     _lists.add(newList);
+    _lists.sort((a, b) => a.name.compareTo(b.name));
     await _storageService.saveLists(_lists);
     notifyListeners();
   }
 
   Future<void> renameList(String listId, String newName) async {
+    if (newName.trim().isEmpty) return;
     final listIndex = _lists.indexWhere((l) => l.id == listId);
     if (listIndex != -1) {
-      _lists[listIndex].name = newName;
+      _lists[listIndex].name = newName.trim();
+      _lists.sort((a, b) => a.name.compareTo(b.name));
       await _storageService.saveLists(_lists);
       notifyListeners();
     }
@@ -208,14 +215,17 @@ class StudyProvider extends ChangeNotifier {
 
   Future<void> deleteList(String listId) async {
     _lists.removeWhere((l) => l.id == listId);
-    // جعل الجلسات التابعة لهذه القائمة غير مصنفة
+    bool sessionsModified = false;
     for (var session in _sessions) {
       if (session.listId == listId) {
         session.listId = null;
+        sessionsModified = true;
       }
     }
     await _storageService.saveLists(_lists);
-    await _storageService.saveSessions(_sessions);
+    if (sessionsModified) {
+      await _storageService.saveSessions(_sessions);
+    }
     notifyListeners();
   }
 
@@ -227,8 +237,7 @@ class StudyProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void resetState() async {
-    await _usageService.init();
+  void resetState() {
     _state = AppState.idle;
     _errorMessage = '';
     _warningMessage = '';
@@ -241,11 +250,9 @@ class StudyProvider extends ChangeNotifier {
       String sessionId, List<QuizQuestion> correctlyAnswered) async {
     final sessionIndex = _sessions.indexWhere((s) => s.id == sessionId);
     if (sessionIndex != -1) {
-      for (var question in correctlyAnswered) {
-        _sessions[sessionIndex]
-            .correctlyAnsweredQuestions
-            .add(question.question);
-      }
+      final session = _sessions[sessionIndex];
+      final correctIds = correctlyAnswered.map((q) => q.question).toSet();
+      session.correctlyAnsweredQuestions.addAll(correctIds);
       await _storageService.saveSessions(_sessions);
       notifyListeners();
     }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
-import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:zaker/providers/study_provider.dart';
 
 class LoadingView extends StatelessWidget {
@@ -13,57 +12,74 @@ class LoadingView extends StatelessWidget {
     return Consumer<StudyProvider>(
       builder: (context, provider, child) {
         return Scaffold(
-          body: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: SingleChildScrollView(
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  theme.colorScheme.surface,
+                  theme.colorScheme.surfaceVariant.withOpacity(0.5),
+                ],
+              ),
+            ),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // --- تعديل: تحديد حجم الأنميشن بشكل آمن لتجنب الأخطاء ---
-                    // SizedBox(
-                    //   width: 200,
-                    //   height: 200,
-                    //   child: Lottie.asset(
-                    //     'assets/animations/processing.json',
-                    //     fit: BoxFit.contain,
+                    // Replaced Lottie with a static CircularProgressIndicator
+                    // const SizedBox(
+                    //   width: 120,
+                    //   height: 120,
+                    //   child: CircularProgressIndicator(
+                    //     strokeWidth: 8,
                     //   ),
                     // ),
-                    const SizedBox(height: 30),
+                    // const SizedBox(height: 40),
                     Text(
-                      'لحظات من فضلك...',
-                      style:
-                          theme.textTheme.displayLarge?.copyWith(fontSize: 28),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'يقوم الذكاء الاصطناعي بتحليل المستند وإعداد مواد المذاكرة لك.',
+                      'جاري التحليل...',
+                      style: theme.textTheme.displaySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
+                      ),
                       textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyMedium,
                     ),
-                    const SizedBox(height: 40),
-                    LinearPercentIndicator(
+                    const SizedBox(height: 16),
+                    Text(
+                      'يقوم الذكاء الاصطناعي ببناء جلستك الدراسية. قد يستغرق هذا بعض الوقت.',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 50),
+                    CircularPercentIndicator(
+                      radius: 65.0,
+                      lineWidth: 13.0,
                       percent: provider.progressValue,
-                      lineHeight: 12.0,
-                      barRadius: const Radius.circular(6),
-                      backgroundColor: theme.colorScheme.surfaceVariant,
+                      center: Text(
+                        "${(provider.progressValue * 100).toInt()}%",
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       progressColor: theme.colorScheme.primary,
+                      backgroundColor: theme.colorScheme.surfaceVariant,
+                      circularStrokeCap: CircularStrokeCap.round,
+                      animation: false, // Animation disabled
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 24),
+                    // Replaced AnimatedSwitcher with a simple Text widget
                     Text(
                       provider.progressMessage,
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 20),
-                    Chip(
-                      label: Text(
-                        'يتم استخدام المفتاح رقم ${provider.currentApiKeyIndex + 1}',
-                        style: theme.textTheme.bodyMedium
-                            ?.copyWith(color: theme.colorScheme.primary),
+                      key: ValueKey<String>(provider.progressMessage),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                         color: theme.colorScheme.onSurfaceVariant,
                       ),
-                      backgroundColor:
-                          theme.colorScheme.primary.withOpacity(0.1),
-                      side: BorderSide.none,
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
@@ -75,3 +91,4 @@ class LoadingView extends StatelessWidget {
     );
   }
 }
+

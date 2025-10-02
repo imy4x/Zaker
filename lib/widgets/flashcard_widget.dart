@@ -14,12 +14,15 @@ class FlashcardWidget extends StatefulWidget {
 }
 
 class _FlashcardWidgetState extends State<FlashcardWidget>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   final CardSwiperController _controller = CardSwiperController();
   int _currentIndex = 0;
   String _currentLanguage = 'ar'; // Default to Arabic
   late AnimationController _languageToggleController;
   late Animation<double> _languageToggleAnimation;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -69,6 +72,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     if (widget.flashcards.isEmpty) {
       return const Center(child: Text('لم يتم إنشاء بطاقات تعليمية.'));
     }
@@ -176,7 +180,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
                         children: [
                           Transform.rotate(
                             angle: _languageToggleAnimation.value * 3.14159,
-                            child: Icon(
+                            child: const Icon(
                               Icons.translate_rounded,
                               color: Colors.white,
                               size: 16,
@@ -232,135 +236,45 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
             ),
           ),
         ),
-        // Navigation buttons - moved to center and more prominent
+        // **إصلاح الأزرار**
+        // تم استبدال الكود السابق المعقد بكود أبسط وأكثر فعالية
         Container(
           margin: const EdgeInsets.symmetric(vertical: 20),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Previous button
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: _currentIndex > 0
-                        ? LinearGradient(
-                            colors: [
-                              Theme.of(context).colorScheme.secondary,
-                              Theme.of(context)
-                                  .colorScheme
-                                  .secondary
-                                  .withOpacity(0.8),
-                            ],
-                          )
-                        : null,
-                    color: _currentIndex == 0 ? Colors.grey.shade300 : null,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: _currentIndex > 0
-                        ? [
-                            BoxShadow(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .secondary
-                                  .withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.arrow_back_rounded, size: 24),
-                    label: Text(
-                      'السابق',
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    onPressed: _currentIndex > 0
-                        ? () => _navigateToCard(_currentIndex - 1)
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                      foregroundColor: _currentIndex > 0
-                          ? Colors.white
-                          : Colors.grey.shade600,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.arrow_back_rounded, size: 24),
+                label: const Text(
+                  'السابق',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
+                onPressed: _currentIndex > 0
+                    ? () => _navigateToCard(_currentIndex - 1)
+                    : null,
+                style: Theme.of(context).outlinedButtonTheme.style
               ),
 
               const SizedBox(width: 20),
 
               // Next button
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: _currentIndex < widget.flashcards.length - 1
-                        ? LinearGradient(
-                            colors: [
-                              Theme.of(context).colorScheme.primary,
-                              Theme.of(context)
-                                  .colorScheme
-                                  .primary
-                                  .withOpacity(0.8),
-                            ],
-                          )
-                        : null,
-                    color: _currentIndex == widget.flashcards.length - 1
-                        ? Colors.grey.shade300
-                        : null,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: _currentIndex < widget.flashcards.length - 1
-                        ? [
-                            BoxShadow(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primary
-                                  .withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.arrow_forward_rounded, size: 24),
-                    label: Text(
-                      'التالي',
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    onPressed: _currentIndex < widget.flashcards.length - 1
-                        ? () => _navigateToCard(_currentIndex + 1)
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                      foregroundColor:
-                          _currentIndex < widget.flashcards.length - 1
-                              ? Colors.white
-                              : Colors.grey.shade600,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.arrow_forward_rounded, size: 24),
+                label: const Text(
+                  'التالي',
+                  style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ),
-                  ),
                 ),
+                onPressed: _currentIndex < widget.flashcards.length - 1
+                    ? () => _navigateToCard(_currentIndex + 1)
+                    : null,
+                style: Theme.of(context).elevatedButtonTheme.style
               ),
             ],
           ),
@@ -380,7 +294,6 @@ class _FlashcardContent extends StatefulWidget {
   State<_FlashcardContent> createState() => _FlashcardContentState();
 }
 
-// --- تعديل: تم إعادة كتابة آلية القلب بالكامل لتكون أكثر استقراراً ---
 class _FlashcardContentState extends State<_FlashcardContent>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
@@ -462,27 +375,22 @@ class _FlashcardContentState extends State<_FlashcardContent>
           end: Alignment.bottomRight,
           colors: isQuestion
               ? [
-                  Colors.white,
-                  const Color(0xFFF8FAFC),
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
+                   Theme.of(context).colorScheme.surfaceContainerHighest,
                 ]
               : [
-                  const Color(0xFFF0F9FF),
-                  const Color(0xFFE0F2FE),
+                  Theme.of(context).colorScheme.primaryContainer.withOpacity(0.4),
+                  Theme.of(context).colorScheme.primaryContainer.withOpacity(0.2),
                 ],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isQuestion
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
-              : Theme.of(context).colorScheme.secondary.withOpacity(0.4),
-          width: 2,
+          color: Theme.of(context).colorScheme.outlineVariant,
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: (isQuestion
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.secondary)
-                .withOpacity(0.1),
+            color: Theme.of(context).colorScheme.shadow.withOpacity(0.05),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -496,20 +404,9 @@ class _FlashcardContentState extends State<_FlashcardContent>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: isQuestion
-                      ? [
-                          Theme.of(context).colorScheme.primary,
-                          Theme.of(context).colorScheme.primary.withOpacity(0.8)
-                        ]
-                      : [
-                          Theme.of(context).colorScheme.secondary,
-                          Theme.of(context)
-                              .colorScheme
-                              .secondary
-                              .withOpacity(0.8)
-                        ],
-                ),
+                color: isQuestion
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.secondary,
                 borderRadius: BorderRadius.circular(25),
                 boxShadow: [
                   BoxShadow(
@@ -598,7 +495,6 @@ class _FlashcardContentState extends State<_FlashcardContent>
   }
 }
 
-// Unified text widget with consistent formatting for all content
 class _UnifiedTextWidget extends StatelessWidget {
   final String text;
   final bool isAnswer;
@@ -610,41 +506,31 @@ class _UnifiedTextWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // تنظيف وتعريب النص
     String cleanText = text.trim();
     
-    // تحسين التعرف على القوائم المرقمة بأشكال مختلفع
-    // مثل "1."  أو "1)" أو "1-" أو آه 1:"
     if (cleanText.contains(RegExp(r'^\d+\s*[\.\)\-:]\s*.+', multiLine: true))) {
       return _buildNumberedList(context);
     }
 
-    // فحص وجود نقاط تعداد
     if (cleanText.contains(RegExp(r'^[•\-\*]\s+.+', multiLine: true))) {
       return _buildBulletList(context);
     }
 
-    // نص عادي بدون قوائم
     return _buildParagraph(context);
   }
 
   Widget _buildNumberedList(BuildContext context) {
-    // لاحظ أن الأسطر قد تكون منفصلة بفراغات متعددة
-    // لذا نحتاج إلى معالجة أفضل للنص
     final lines = text.split('\n')
         .where((line) => line.trim().isNotEmpty)
         .toList();
     
     final items = <Widget>[];
     
-    // متغير لتتبع ما إذا كنا بداخل قائمة مرقمة
     bool inNumberedList = false;
-    int listItemCount = 1;
     
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
       
-      // تحسين التعبير المنتظم للتعرف على الأرقام بمختلف الفواصل
       final numberedMatch = RegExp(r'^(\d+)\s*[\.\)\-:]\s*(.*)').firstMatch(line);
       
       if (numberedMatch != null) {
@@ -652,7 +538,6 @@ class _UnifiedTextWidget extends StatelessWidget {
         final number = numberedMatch.group(1)!;
         final content = numberedMatch.group(2)!.trim();
         
-        // تنسيق محسّن لعناصر القائمة المرقمة
         items.add(_buildListItem(
           context: context,
           number: number,
@@ -660,23 +545,18 @@ class _UnifiedTextWidget extends StatelessWidget {
           isLast: i == lines.length - 1,
         ));
         
-        listItemCount++;
       } else {
-        // إذا كان هذا نص عادي بين عناصر القائمة المرقمة
         if (inNumberedList && lines[i].trim().length < 50 && i < lines.length - 1) {
-          // تحقق من السطر التالي - إذا كان مرقماً، فهذا سطر عنوان
           final nextLineIsNumbered = i < lines.length - 1 && 
               RegExp(r'^(\d+)\s*[\.\)\-:]\s*(.*)').hasMatch(lines[i+1].trim());
           
           if (nextLineIsNumbered) {
-            // هذا عنوان للقسم التالي
             items.add(_buildSectionTitle(context, line));
             inNumberedList = false;
             continue;
           }
         }
         
-        // معالجة الأسطر العادية
         items.add(_buildRegularLine(context, line));
         inNumberedList = false;
       }
@@ -779,24 +659,12 @@ class _UnifiedTextWidget extends StatelessWidget {
       margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isAnswer ? const Color(0xFFF0F9FF) : const Color(0xFFF8FAFC),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isAnswer
-              ? Theme.of(context).colorScheme.secondary.withOpacity(0.3)
-              : Theme.of(context).colorScheme.primary.withOpacity(0.3),
-          width: 1.5,
+          color: Theme.of(context).colorScheme.outlineVariant,
+          width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: (isAnswer
-                    ? Theme.of(context).colorScheme.secondary
-                    : Theme.of(context).colorScheme.primary)
-                .withOpacity(0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -805,28 +673,10 @@ class _UnifiedTextWidget extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isAnswer
-                    ? [
-                        Theme.of(context).colorScheme.secondary,
-                        Theme.of(context).colorScheme.secondary.withOpacity(0.8)
-                      ]
-                    : [
-                        Theme.of(context).colorScheme.primary,
-                        Theme.of(context).colorScheme.primary.withOpacity(0.8)
-                      ],
-              ),
+              color: isAnswer
+                  ? Theme.of(context).colorScheme.secondary
+                  : Theme.of(context).colorScheme.primary,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: (isAnswer
-                          ? Theme.of(context).colorScheme.secondary
-                          : Theme.of(context).colorScheme.primary)
-                      .withOpacity(0.3),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: Text(
               number,
@@ -901,7 +751,6 @@ class _UnifiedTextWidget extends StatelessWidget {
     );
   }
 
-  /// دالة بناء عنوان لقسم في القائمة
   Widget _buildSectionTitle(BuildContext context, String title) {
     final hasArabic = title.contains(RegExp(r'[\u0600-\u06FF]'));
     
@@ -909,17 +758,8 @@ class _UnifiedTextWidget extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 16),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.primaryContainer,
-            Theme.of(context).colorScheme.primaryContainer.withOpacity(0.8),
-          ],
-        ),
+        color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-          width: 1,
-        ),
       ),
       child: Text(
         title,
@@ -957,3 +797,4 @@ class _UnifiedTextWidget extends StatelessWidget {
     );
   }
 }
+
